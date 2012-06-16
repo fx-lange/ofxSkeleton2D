@@ -6,4 +6,4 @@ ofxSkeleton2D
 Dependencies
 ============
 ofxVoronoiGL - to generate distance map as texture
-ofxOpenCv - to calculate the human silhouette 
+ofxOpenCv - for additional CV stuf (e.g. calculate human silhouette) 
