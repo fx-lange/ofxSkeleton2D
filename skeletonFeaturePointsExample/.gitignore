@@ -1,0 +1,5 @@
+obj
+bin/libs
+bin/*Example*
+bin/data/*.png
+bin/data/*.mov

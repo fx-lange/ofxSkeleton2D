@@ -1,0 +1,5 @@
+ofxSkeleton2D
+ofxVoronoiGL
+ofxOpenCv
+ofxXmlSettings
+ofxGui
