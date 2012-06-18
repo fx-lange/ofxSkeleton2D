@@ -3,7 +3,7 @@
 #include "ofxGui.h"
 #include "ofxSkeleton2D.h"
 
-class sfpExample: public ofBaseApp {
+class skeleton2DExample: public ofBaseApp {
 
 public:
 	void setup();

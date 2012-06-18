@@ -1,7 +1,7 @@
 #include "testApp.h"
 
 //--------------------------------------------------------------
-void sfpExample::setup(){
+void skeleton2DExample::setup(){
 	setupGui();
 
 	vidPlayer.loadMovie("5Try.mov");
@@ -30,7 +30,7 @@ void sfpExample::setup(){
 	ofSetFrameRate(60);
 }
 
-void sfpExample::setupGui(){
+void skeleton2DExample::setupGui(){
 	gui.setup();
 	gui.setSize(300,gui.getHeight());
 	gui.add(threshold.setup("threshold",30,1,255));
@@ -38,7 +38,7 @@ void sfpExample::setupGui(){
 }
 
 //--------------------------------------------------------------
-void sfpExample::update(){
+void skeleton2DExample::update(){
 	vidPlayer.idleMovie();
 
 	if(vidPlayer.isFrameNew()){
@@ -52,7 +52,7 @@ void sfpExample::update(){
 }
 
 //--------------------------------------------------------------
-void sfpExample::draw(){
+void skeleton2DExample::draw(){
 	if(fbo != NULL){
 		fbo->draw(0,0);
 	}
@@ -61,30 +61,30 @@ void sfpExample::draw(){
 }
 
 //--------------------------------------------------------------
-void sfpExample::keyPressed(int key){
+void skeleton2DExample::keyPressed(int key){
 }
 
 //--------------------------------------------------------------
-void sfpExample::keyReleased(int key){
+void skeleton2DExample::keyReleased(int key){
 }
 
 //--------------------------------------------------------------
-void sfpExample::mouseMoved(int x, int y ){
+void skeleton2DExample::mouseMoved(int x, int y ){
 }
 
 //--------------------------------------------------------------
-void sfpExample::mouseDragged(int x, int y, int button){
+void skeleton2DExample::mouseDragged(int x, int y, int button){
 }
 
 //--------------------------------------------------------------
-void sfpExample::mousePressed(int x, int y, int button){
+void skeleton2DExample::mousePressed(int x, int y, int button){
 }
 
 //--------------------------------------------------------------
-void sfpExample::mouseReleased(int x, int y, int button){
+void skeleton2DExample::mouseReleased(int x, int y, int button){
 }
 
 //--------------------------------------------------------------
-void sfpExample::windowResized(int w, int h){
+void skeleton2DExample::windowResized(int w, int h){
 }
 
