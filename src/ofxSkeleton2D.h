@@ -15,6 +15,7 @@
 #include "ofxOpenCv.h"
 
 #include "SFPLine.h"
+#include "ofxSkeleton.h"
 #include "ofxSkeletonGui.h"
 
 class ofxSkeleton2D {
@@ -28,13 +29,16 @@ public:
 	ofFbo * calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput, float simplifyTolerance);
 	ofFbo * calcSfpAsFbo(vector<ofPoint> & silhouette);
 
-	void constructLines();
+	void calcSkeleton();
 
 	void drawBinary(float x = 0, float y = 0);
 	void drawDebugTorso(float x = 0, float y = 0);
-	void drawDebugLines(float x= 0, float y = 0);
+	void drawDebugLines(float x = 0, float y = 0);
+	void drawDebugLimbs(float x = 0, float y = 0);
+	void drawDebugSkeleton(float x = 0, float y = 0);
 
 protected:
+	ofxSkeletonGui gui;
 	float width, height;
 
 	ofFbo fbo;
@@ -66,8 +70,14 @@ protected:
 	cv::Mat xss, yss; //TODO naming!!!
 
 	//Lines
-	vector< vector<SFP> > linePixels;
-	vector< SFPLine > lines;
+	vector<vector<SFP> > linePixels;
+	vector<SFPLine> lines;
+
+	//Limbs
+	vector<SLimb*> limbs; //TODO memory leak
+
+	//SKELETON
+	Skeleton skeleton;
 
 	// read pixels to PBO (asynchronous)
 	GLubyte * readPixelsToPBO();
@@ -79,11 +89,13 @@ protected:
 	void findLines();
 	void mergeLines();
 
+	void createLimbs();
+	void searchHeadAndArms();
+
 	vector<SFP*> findInit(SFP * active, int manhattenRadius);
 	SFP * findNext(SFP * active, int manhattenRadius);
 	SFP * findBest(SFP * last, SFP * active, int manhattenRadius);
 
-	ofxSkeletonGui gui;
 };
 
 #endif /* OFXSKELETON2D_H_ */

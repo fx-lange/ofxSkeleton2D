@@ -112,7 +112,7 @@ ofFbo * ofxSkeleton2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
 	return &fbo;
 }
 
-void ofxSkeleton2D::constructLines(){
+void ofxSkeleton2D::calcSkeleton(){
 	GLubyte * ptr = readPixelsToPBO();
 
 	if(!ptr)
@@ -125,6 +125,9 @@ void ofxSkeleton2D::constructLines(){
 	if(gui.bMergeLines){
 		mergeLines();
 	}
+
+	createLimbs();
+	searchHeadAndArms();
 }
 
 void ofxSkeleton2D::drawBinary(float x, float y){
@@ -176,6 +179,32 @@ void ofxSkeleton2D::drawDebugLines(float x, float y){
 		ofSetColor(0, 0, 255);
 		ofLine(p1.x, p1.y, p2.x, p2.y);
 	}
+
+	ofPopStyle();
+	ofPopMatrix();
+}
+
+void ofxSkeleton2D::drawDebugLimbs(float x, float y){
+	ofPushMatrix();
+	ofTranslate(x,y);
+	ofPushStyle();
+
+	//Limbs
+	for (int i = 0; i < limbs.size(); ++i) {
+		limbs[i]->draw();
+	}
+
+	ofPopStyle();
+	ofPopMatrix();
+}
+
+void ofxSkeleton2D::drawDebugSkeleton(float x, float y){
+	ofPushMatrix();
+	ofTranslate(x,y);
+	ofPushStyle();
+
+	//Skeleton
+	skeleton.draw();
 
 	ofPopStyle();
 	ofPopMatrix();
@@ -561,6 +590,169 @@ void ofxSkeleton2D::mergeLines() {
 			++it;
 		}
 	}
+}
+
+void ofxSkeleton2D::createLimbs() {
+	limbs.clear(); //memory leak
+	for (int i = 0; i < lines.size(); ++i) {
+		SFPLine & line = lines[i];
+		SLimb * limb = NULL;
+		if (line.limb != NULL) {
+			continue;
+		} else {
+			line.limb = limb = new SLimb(line.first(), line.last());
+		}
+
+		for (int j = 0; j < lines.size(); ++j) {
+			SFPLine & other = lines[j];
+			if (other.limb != NULL) {
+				continue;
+			}
+			if (limb->last().distance(other.first()) < gui.maxMergeDistance) {
+				limb->join(other.first(), other.last(), false);
+				other.limb = limb;
+			} else if (limb->last().distance(other.last()) < gui.maxMergeDistance) {
+				limb->join(other.last(), other.first(), false);
+				other.limb = limb;
+			} else if (limb->first().distance(other.last()) < gui.maxMergeDistance) {
+				limb->join(other.last(), other.first(), true);
+				other.limb = limb;
+			} else if (limb->first().distance(other.first()) < gui.maxMergeDistance) {
+				limb->join(other.first(), other.last(), true);
+				other.limb = limb;
+			}
+		}
+		limbs.push_back(limb);
+	}
+}
+
+void ofxSkeleton2D::searchHeadAndArms() {
+	//TODO wirkt sehr aufwenig um die 3 nächsten zu suchen.
+
+	vector<SLimb*> nearest;
+	vector<float> minDistances;
+	minDistances.push_back(20000);
+	minDistances.push_back(20000);
+	minDistances.push_back(20000);
+	minDistances.push_back(20000);
+	minDistances.push_back(20000);
+	nearest.push_back(NULL);
+	nearest.push_back(NULL);
+	nearest.push_back(NULL);
+	nearest.push_back(NULL);
+	nearest.push_back(NULL);
+
+	for (int i = 0; i < limbs.size(); ++i) {
+		SLimb * limb = limbs[i];
+		float distanceToCheck = 0;
+		float distanceFirst = limb->first().distance(torsoHigh);
+		float distanceLast = limb->last().distance(torsoHigh);
+		if (distanceFirst < distanceLast) {
+			distanceToCheck = distanceFirst;
+			limb->bReverseOrder = false;
+		} else {
+			distanceToCheck = distanceLast;
+			limb->bReverseOrder = true;
+		}
+		for (int j = 0; j < 5; ++j) {
+			if (distanceToCheck < minDistances[j]) {
+				for (int k = 4; k > j; k--) {
+					minDistances[k] = minDistances[k - 1];
+					nearest[k] = nearest[k - 1];
+				}
+				minDistances[j] = distanceToCheck;
+				nearest[j] = limb;
+				break;
+			}
+		}
+	}
+
+	vector<SLimb*> minAngleLimbs;
+	vector<float> minAngles;
+	minAngles.push_back(20000);
+	minAngles.push_back(20000);
+	minAngles.push_back(20000);
+	minAngles.push_back(20000);
+	minAngles.push_back(20000);
+	minAngleLimbs.push_back(NULL);
+	minAngleLimbs.push_back(NULL);
+	minAngleLimbs.push_back(NULL);
+	minAngleLimbs.push_back(NULL);
+	minAngleLimbs.push_back(NULL);
+
+	ofVec2f v2 = torsoHigh - torsoLow;
+	float maxAngle = 150.f;
+	for (int i = 0; i < limbs.size(); ++i) {
+		SLimb * limb = limbs[i];
+		ofVec2f v1 = limbs[i]->getLimbStart() - torsoHigh;
+		float tmpAngle = abs(v1.angle(v2));
+		limb->startAngle = tmpAngle;
+		for (int j = 0; j < 5; ++j) {
+			if (tmpAngle < minAngles[j]) {
+				for (int k = 4; k > j; k--) {
+					minAngles[k] = minAngles[k - 1];
+					minAngleLimbs[k] = minAngleLimbs[k - 1];
+				}
+				minAngles[j] = tmpAngle;
+				minAngleLimbs[j] = limb;
+				break;
+			}
+		}
+	}
+
+	int nextIdx = 0;
+	skeleton.head = skeleton.arms[0] = skeleton.arms[1] = skeleton.legs[0] = skeleton.legs[1] = NULL; //TODO reset() skeleton
+	if (minAngleLimbs[nextIdx] != NULL) {
+		skeleton.head = minAngleLimbs[nextIdx];
+		++nextIdx;
+
+		//arms
+		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
+			skeleton.arms[0] = minAngleLimbs[nextIdx];
+			++nextIdx;
+			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
+				skeleton.arms[1] = minAngleLimbs[nextIdx];
+				++nextIdx;
+			}
+		}
+
+		//legs
+		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle > maxAngle) {
+			skeleton.legs[0] = minAngleLimbs[nextIdx];
+			if (minAngleLimbs[nextIdx + 1] != NULL && minAngleLimbs[nextIdx + 1]->startAngle > maxAngle) {
+				skeleton.legs[1] = minAngleLimbs[nextIdx + 1];
+			}
+		}
+	}
+
+//	//Unterscheidung von Kopf und Fuß über Ähnlichkeit der Winkel zum Torso
+//	//TODO Gerade Arme oder sehr schiefer Kopf könnten hier Fehler verursachen
+//	float minAngle = 360.f;
+//	int minIndex = 0;
+//	ofVec2f v2 = torsoHigh - torsoLow;
+//	for(int i=0;i<3;i++){
+//		if(nearest[i] == NULL){
+//			break;
+//		}
+//
+////		ofVec2f v1 = nearest[i]->getLimbEnd() - nearest[i]->getLimbStart();
+//		ofVec2f v1 = nearest[i]->getLimbStart() - torsoHigh;
+//		float tmpAngle = abs(v1.angle(v2));
+//		if(tmpAngle < maxAngle && tmpAngle < minAngle){
+//			minIndex = i;
+//			minAngle = tmpAngle;
+//		}
+//	}
+//
+//	if(nearest[minIndex] != NULL){
+//		skeleton.head = nearest[minIndex];
+//		if(nearest[(minIndex+1)%3] != NULL){
+//			skeleton.arms[0] = nearest[(minIndex+1)%3];
+//			if(nearest[(minIndex+2)%3] != NULL){
+//				skeleton.arms[1] = nearest[(minIndex+2)%3];
+//			}
+//		}
+//	}
 }
 
 // ================================================================================
