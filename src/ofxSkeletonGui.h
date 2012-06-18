@@ -28,13 +28,16 @@ public:
 	ofxToggle bFindBest;
 	ofxToggle bSecondChance;
 	ofxIntSlider maxChances;
-	ofxToggle bExcludeTorso;
 
 	//Merge lines
 	ofxPanel mergePanel;
 	ofxToggle bMergeLines;
 	ofxFloatSlider maxMergeDistance;
 	ofxFloatSlider maxMergeAngle;
+
+	//Torso
+	ofxPanel torsoPanel;
+	ofxToggle bExcludeTorso;
 
 	ofxSkeletonGui(){
 		panel.setup("ofxSkeleton2D","skeletonGui.xml");
@@ -56,6 +59,10 @@ public:
 		mergePanel.add(maxMergeDistance.setup("max merge distance",10,1,50));
 		mergePanel.add(maxMergeAngle.setup("max merge angle",10,1,50));
 		panel.add(&mergePanel);
+
+		torsoPanel.setup("torso");
+		torsoPanel.add(bExcludeTorso.setup("exclude torso",true));
+		panel.add(&bExcludeTorso);
 	}
 };
 

@@ -127,6 +127,10 @@ void ofxSkeleton2D::constructLines(){
 	}
 }
 
+void ofxSkeleton2D::drawBinary(float x, float y){
+	binary.draw(x,y);
+}
+
 void ofxSkeleton2D::drawDebugTorso(float x,float y){
 	ofPushMatrix();
 	ofTranslate(x,y);
@@ -150,6 +154,28 @@ void ofxSkeleton2D::drawDebugTorso(float x,float y){
 	ofSetColor(255, 255, 255, 180);
 	ofNoFill();
 	ofRect(bbTorso);
+
+	ofPopStyle();
+	ofPopMatrix();
+}
+
+void ofxSkeleton2D::drawDebugLines(float x, float y){
+	ofPushMatrix();
+	ofTranslate(x,y);
+	ofPushStyle();
+
+	//Lines
+	ofFill();
+	for (int i = 0; i < lines.size(); ++i) {
+		ofPoint & p1 = lines[i][0];
+		ofPoint & p2 = lines[i][lines[i].size() - 1];
+		ofSetColor(255, 255, 0, 100);
+		ofEllipse(p1.x, p1.y, 15, 15);
+		ofSetColor(0, 255, 255, 100);
+		ofEllipse(p2.x, p2.y, 15, 15);
+		ofSetColor(0, 0, 255);
+		ofLine(p1.x, p1.y, p2.x, p2.y);
+	}
 
 	ofPopStyle();
 	ofPopMatrix();

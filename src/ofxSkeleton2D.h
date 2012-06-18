@@ -30,7 +30,9 @@ public:
 
 	void constructLines();
 
+	void drawBinary(float x = 0, float y = 0);
 	void drawDebugTorso(float x = 0, float y = 0);
+	void drawDebugLines(float x= 0, float y = 0);
 
 protected:
 	float width, height;
