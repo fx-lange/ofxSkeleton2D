@@ -31,6 +31,7 @@ public:
 
 	void calcSkeleton();
 
+	void drawVoronoi(float x = 0, float y = 0);
 	void drawBinary(float x = 0, float y = 0);
 	void drawDebugTorso(float x = 0, float y = 0);
 	void drawDebugLines(float x = 0, float y = 0);

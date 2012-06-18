@@ -134,6 +134,10 @@ void ofxSkeleton2D::drawBinary(float x, float y){
 	binary.draw(x,y);
 }
 
+void ofxSkeleton2D::drawVoronoi(float x, float y){
+	voronoi.drawFboOnScreen(x,y);
+}
+
 void ofxSkeleton2D::drawDebugTorso(float x,float y){
 	ofPushMatrix();
 	ofTranslate(x,y);
