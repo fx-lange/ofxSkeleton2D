@@ -2,7 +2,6 @@
 
 //--------------------------------------------------------------
 void skeleton2DExample::setup(){
-	setupGui();
 
 	vidPlayer.loadMovie("5Try.mov");
 	vidPlayer.setLoopState(OF_LOOP_NORMAL);
@@ -10,6 +9,7 @@ void skeleton2DExample::setup(){
 
 	width = vidPlayer.getWidth();
 	height = vidPlayer.getHeight();
+	setupGui();
 
 	skeletonTracker.setup(640,480);
 	fbo = NULL;
@@ -32,6 +32,7 @@ void skeleton2DExample::setup(){
 
 void skeleton2DExample::setupGui(){
 	gui.setup();
+	gui.setPosition(width,height / 2 + 30);
 	gui.setSize(300,gui.getHeight());
 	gui.add(threshold.setup("threshold",30,1,255));
 	gui.add(tolerance.setup("simplify tolance",10,1,50));
@@ -49,14 +50,26 @@ void skeleton2DExample::update(){
 	}
 
 	msg = "fps :" + ofToString(ofGetFrameRate());
+	gui.draw();
 }
 
 //--------------------------------------------------------------
 void skeleton2DExample::draw(){
+	ofPushMatrix();
+	ofScale(0.5,0.5);
+	grayImage.draw(0,0);
+	skeletonTracker.drawBinary(width,0);
+	skeletonTracker.getVoronoi().getFbo().getDepthTexture().draw(width*2);
+	ofPopMatrix();
+
+	ofPushMatrix();
+	ofTranslate(0,height/2);
 	if(fbo != NULL){
 		fbo->draw(0,0);
 	}
+	ofPopMatrix();
 
+	gui.draw();
 	ofDrawBitmapString(msg,width + 20,20);
 }
 

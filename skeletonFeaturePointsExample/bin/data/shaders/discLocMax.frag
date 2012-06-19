@@ -4,22 +4,13 @@
 uniform float width;
 uniform float height;
 uniform int maxPlacement;
-uniform sampler2D tex0;
+uniform sampler2DRect tex0;
 uniform sampler2DRect colorTex;
 
 varying vec2 texCoord;  
 
-/*
-float LinearizeDepth(vec2 uv)
-{
-  float n = 1.0; // camera z near
-  float f = 100.0; // camera z far
-  float z = texture2D(tex0, uv).x;
-  return (2.0 * n) / (f + n - z * (f - n));
-}*/
-
 float getDepthDisk(vec2 xy){
-	float d = texture2D(tex0, xy/vec2(width,height)).x;
+	float d = texture2DRect(tex0, xy).r;
 	return round(d/0.0005)*0.0005;
 }
 
