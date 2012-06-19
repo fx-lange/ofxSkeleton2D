@@ -33,7 +33,6 @@ void ofxSkeleton2D::setup(float _width, float _height) {
 	}
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	activeIdx = 0;
-	torsoThreshold = 0.7;
 
 	//TORSO
 	xss.create(0, 1, CV_32F);
@@ -46,13 +45,17 @@ ofxPanel * ofxSkeleton2D::getGui(){
 	return & gui.panel;
 }
 
-ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background, int threshold, float simplifyTolerance) {
-	binary.absDiff(background, grayInput);
-	binary.threshold(threshold);
-	return calcSfpAsFbo(binary, simplifyTolerance);
+ofxPanel * ofxSkeleton2D::getImageprocessingPanel(){
+	return & gui.imagePanel;
 }
 
-ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput, float simplifyTolerance) {
+ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background) {
+	binary.absDiff(background, grayInput);
+	binary.threshold(gui.threshold);
+	return calcSfpAsFbo(binary);
+}
+
+ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 	contourFinder.findContours(binaryInput, 20, (340 * height) / 3, 10, true); // find holes
 
 	simpleContour.clear();
@@ -60,7 +63,7 @@ ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput, float sim
 		ofxCvBlob & firstBlob = contourFinder.blobs[0];
 
 		simpleContour.addVertexes(firstBlob.pts);
-		simpleContour.simplify(simplifyTolerance);
+		simpleContour.simplify(gui.tolerance);
 
 		return calcSfpAsFbo(simpleContour.getVertices());
 	} else {
@@ -260,7 +263,7 @@ void ofxSkeleton2D::createSFPGrid(GLubyte * pboPtr){
 			bool bIsTorsoP = false;
 
 			//Torsopunkte finden
-			if (d > lastMaxDepth * torsoThreshold) {
+			if (d > lastMaxDepth * gui.torsoThreshold) {
 				torso.push_back(ofPoint(x, y, d));
 				xss.push_back((float) x);
 				yss.push_back((float) y);

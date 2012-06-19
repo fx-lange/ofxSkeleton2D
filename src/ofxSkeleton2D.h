@@ -23,10 +23,11 @@ public:
 	void setup(float width, float height);
 
 	ofxPanel * getGui();
+	ofxPanel * getImageprocessingPanel();
 
 	//generate skeleton feature points
-	ofFbo * calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background, int threshold, float simplifyTolerance);
-	ofFbo * calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput, float simplifyTolerance);
+	ofFbo * calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background);
+	ofFbo * calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput);
 	ofFbo * calcSfpAsFbo(vector<ofPoint> & silhouette);
 
 	void calcSkeleton();
@@ -64,7 +65,7 @@ protected:
 	list<ofPoint> sfpList; //TODO use class SFP
 
 	//TORSO
-	float maxDepth, torsoThreshold;
+	float maxDepth;
 	ofShader findTorso;
 	vector<ofPoint> torso;
 	ofPoint center;
