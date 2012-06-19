@@ -22,6 +22,9 @@ public:
 	ofxFloatSlider threshold;
 	ofxFloatSlider tolerance;
 
+	ofxPanel shaderPanel;
+	ofxFloatSlider lmpAccuracy;
+
 	//Find Line Segments
 	ofxPanel linePanel;
 	ofxFloatSlider maxAngle;
@@ -53,6 +56,9 @@ public:
 		imagePanel.add(threshold.setup("threshold",30,1,255));
 		imagePanel.add(tolerance.setup("simplify tolance",10,1,50));
 		panel.add(&imagePanel);
+
+		shaderPanel.setup("shader");
+		shaderPanel.add(lmpAccuracy.setup("loc max accuracy",0.0005,0.00001,0.01));
 
 		linePanel.setup("line construction");
 //		linePanel.setSize(270,imagePanel.getHeight());

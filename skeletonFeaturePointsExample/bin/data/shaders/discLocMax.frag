@@ -3,7 +3,7 @@
 
 uniform float width;
 uniform float height;
-uniform int maxPlacement;
+uniform float accuracy;
 uniform sampler2DRect tex0;
 uniform sampler2DRect colorTex;
 
@@ -11,7 +11,7 @@ varying vec2 texCoord;
 
 float getDepthDisk(vec2 xy){
 	float d = texture2DRect(tex0, xy).r;
-	return round(d/0.0005)*0.0005;
+	return round(d/accuracy)*accuracy;
 }
 
 vec4 getColor(vec2 xy){

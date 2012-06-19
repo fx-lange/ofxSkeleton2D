@@ -34,6 +34,8 @@ void skeleton2DExample::setupGui(){
 	gui.setup("gui");
 	gui.setPosition(width,height / 2 + 30);
 	gui.add(skeletonTracker.getImageprocessingPanel());
+	gui.add(skeletonTracker.getShaderPanel());
+	gui.loadFromFile("settings.xml");
 }
 
 //--------------------------------------------------------------

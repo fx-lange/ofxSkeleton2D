@@ -24,6 +24,7 @@ public:
 
 	ofxPanel * getGui();
 	ofxPanel * getImageprocessingPanel();
+	ofxPanel * getShaderPanel();
 
 	//generate skeleton feature points
 	ofFbo * calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background);

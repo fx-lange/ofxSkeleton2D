@@ -49,6 +49,10 @@ ofxPanel * ofxSkeleton2D::getImageprocessingPanel(){
 	return & gui.imagePanel;
 }
 
+ofxPanel * ofxSkeleton2D::getShaderPanel(){
+	return & gui.shaderPanel;
+}
+
 ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background) {
 	binary.absDiff(background, grayInput);
 	binary.threshold(gui.threshold);
@@ -93,7 +97,7 @@ ofFbo * ofxSkeleton2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
 
 	sfpShader.setUniform1f("width", width);
 	sfpShader.setUniform1f("height", height);
-	sfpShader.setUniform1i("maxPlacement", 1); //TODO gui or change shader
+	sfpShader.setUniform1f("accuracy", gui.lmpAccuracy);
 	sfpShader.setUniformTexture("tex0", voronoi.getFbo().getDepthTexture(), voronoi.getFbo().getDepthTexture().getTextureData().textureID);
 	sfpShader.setUniformTexture("colorTex", voronoi.getFbo().getTextureReference(), voronoi.getFbo().getTextureReference().getTextureData().textureID);
 //	shader.setUniformTexture("tex0",voronoi.getFbo().getTextureReference(),voronoi.getFbo().getTextureReference().getTextureData().textureID);
