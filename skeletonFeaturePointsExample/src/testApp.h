@@ -35,8 +35,6 @@ public:
 
 	//GUI
 	ofxPanel gui;
-	ofxFloatSlider threshold;
-	ofxFloatSlider tolerance;
 
 	string msg;
 };

@@ -9,11 +9,11 @@ void skeleton2DExample::setup(){
 
 	width = vidPlayer.getWidth();
 	height = vidPlayer.getHeight();
-	setupGui();
 
 	skeletonTracker.setup(640,480);
-	fbo = NULL;
+	setupGui();
 
+	fbo = NULL;
 	colorImg.allocate(width, height);
 	grayImage.allocate(width, height);
 	grayBg.allocate(width, height);
@@ -31,11 +31,9 @@ void skeleton2DExample::setup(){
 }
 
 void skeleton2DExample::setupGui(){
-	gui.setup();
+	gui.setup("gui");
 	gui.setPosition(width,height / 2 + 30);
-	gui.setSize(300,gui.getHeight());
-	gui.add(threshold.setup("threshold",30,1,255));
-	gui.add(tolerance.setup("simplify tolance",10,1,50));
+	gui.add(skeletonTracker.getImageprocessingPanel());
 }
 
 //--------------------------------------------------------------
@@ -46,7 +44,7 @@ void skeleton2DExample::update(){
 		colorImg.setFromPixels(vidPlayer.getPixels(), width, height);
 		grayImage = colorImg;
 
-		fbo = skeletonTracker.calcSfpAsFbo(grayImage,grayBg,threshold,tolerance);
+		fbo = skeletonTracker.calcSfpAsFbo(grayImage,grayBg);
 	}
 
 	msg = "fps :" + ofToString(ofGetFrameRate());
