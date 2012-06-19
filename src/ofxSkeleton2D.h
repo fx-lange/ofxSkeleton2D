@@ -32,6 +32,10 @@ public:
 	void calcSkeleton();
 
 	void drawVoronoi(float x = 0, float y = 0);
+	ofxVoronoiGL & getVoronoi(){
+		return voronoi;
+	}
+
 	void drawBinary(float x = 0, float y = 0);
 	void drawDebugTorso(float x = 0, float y = 0);
 	void drawDebugLines(float x = 0, float y = 0);
