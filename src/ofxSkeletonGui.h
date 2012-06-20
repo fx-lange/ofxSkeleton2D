@@ -81,7 +81,7 @@ public:
 		panel.add(&mergePanel);
 
 		torsoPanel.setup("torso");
-		torsoPanel.setSize(270,imagePanel.getHeight());
+//		torsoPanel.setSize(270,imagePanel.getHeight());
 		torsoPanel.add(bExcludeTorso.setup("exclude torso",true));
 		torsoPanel.add(torsoThreshold.setup("torso threshold",0.7,0,1));
 		panel.add(&torsoPanel);
