@@ -691,6 +691,11 @@ void ofxSkeleton2D::searchHeadAndArms() {
 	minAngleLimbs.push_back(NULL);
 	minAngleLimbs.push_back(NULL);
 
+
+	//Pose Estimation - Head vs Arms
+	//a) v2 = torsoLow_torsoHigh v1 = torsoHigh_limbStart -> dcVcb
+	//b) v2 = torsoLow_torsoHigh v1 = limbStart_limbEnd -> dcVba
+	// a) is better than b)
 	ofVec2f v2 = torsoHigh - torsoLow;
 	float maxAngle = 150.f;
 	for (int i = 0; i < limbs.size(); ++i) {

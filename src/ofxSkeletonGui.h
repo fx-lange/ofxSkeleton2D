@@ -59,6 +59,7 @@ public:
 
 		shaderPanel.setup("shader");
 		shaderPanel.add(lmpAccuracy.setup("loc max accuracy",0.0005,0.00001,0.01));
+		panel.add(&shaderPanel);
 
 		linePanel.setup("line construction");
 //		linePanel.setSize(270,imagePanel.getHeight());
@@ -83,7 +84,7 @@ public:
 		torsoPanel.setSize(270,imagePanel.getHeight());
 		torsoPanel.add(bExcludeTorso.setup("exclude torso",true));
 		torsoPanel.add(torsoThreshold.setup("torso threshold",0.7,0,1));
-		panel.add(&bExcludeTorso);
+		panel.add(&torsoPanel);
 	}
 };
 
