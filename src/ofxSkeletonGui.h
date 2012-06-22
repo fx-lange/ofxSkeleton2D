@@ -41,6 +41,7 @@ public:
 	ofxToggle bMergeLines;
 	ofxFloatSlider maxMergeDistance;
 	ofxFloatSlider maxMergeAngle;
+	ofxFloatSlider maxLimbPointDistance;
 
 	//Torso
 	ofxPanel torsoPanel;
@@ -78,6 +79,7 @@ public:
 		mergePanel.add(bMergeLines.setup("merge them",false));
 		mergePanel.add(maxMergeDistance.setup("max merge distance",10,1,50));
 		mergePanel.add(maxMergeAngle.setup("max merge angle",10,1,50));
+		mergePanel.add(maxLimbPointDistance.setup("max limb point dist",10,1,50));
 		panel.add(&mergePanel);
 
 		torsoPanel.setup("torso");

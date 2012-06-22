@@ -3,12 +3,12 @@
 //--------------------------------------------------------------
 void skeleton2DExample::setup(){
 
-	vidPlayer.loadMovie("5Try.mov");
-	vidPlayer.setLoopState(OF_LOOP_NORMAL);
-	vidPlayer.play();
+	input.loadMovie("5Try.mov");
+	input.setLoopState(OF_LOOP_NORMAL);
+	input.play();
 
-	width = vidPlayer.getWidth();
-	height = vidPlayer.getHeight();
+	width = input.getWidth();
+	height = input.getHeight();
 
 	skeletonTracker.setup(640,480);
 	setupGui();
@@ -40,10 +40,10 @@ void skeleton2DExample::setupGui(){
 
 //--------------------------------------------------------------
 void skeleton2DExample::update(){
-	vidPlayer.idleMovie();
+	input.idleMovie();
 
-	if(vidPlayer.isFrameNew()){
-		colorImg.setFromPixels(vidPlayer.getPixels(), width, height);
+	if(input.isFrameNew()){
+		colorImg.setFromPixels(input.getPixels(), width, height);
 		grayImage = colorImg;
 
 		fbo = skeletonTracker.calcSfpAsFbo(grayImage,grayBg);

@@ -3,15 +3,19 @@
 
 #include "ofMain.h"
 
-class SFP : public ofPoint{
+class ofxSFP : public ofPoint{
 public:
 	bool used;
 	bool isTorsoPoint;
-	SFP(float x,float y,float z)
+
+	float depth;
+
+	ofxSFP(float x,float y,float z)
 	:ofPoint(x,y,z)
 	{
 		used = false;
 		isTorsoPoint = false;
+		depth = 0;
 	}
 };
 

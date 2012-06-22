@@ -12,16 +12,16 @@
 #include "ofxSFP.h"
 #include "ofxSLimb.h"
 
-class SFPLine{
+class ofxSFPLine{
 public:
-	SFPLine(){
+	ofxSFPLine(){
 		bMerged = false;
 		limb = NULL;
 	}
-	vector<SFP> pixels;
+	vector<ofxSFP> pixels;
 	bool bMerged;
-	SLimb * limb;
-	SFP & operator[](int idx){
+	ofxSLimb * limb;
+	ofxSFP & operator[](int idx){
 		return pixels[idx];
 	}
 
@@ -35,15 +35,15 @@ public:
 		ofTranslate(-x,-y);
 	}
 
-	SFP & first(){
+	ofxSFP & first(){
 		return pixels[0];
 	}
 
-	SFP & last(){
+	ofxSFP & last(){
 		return pixels[size()-1];
 	}
 
-	void add(SFPLine & other,bool bReverse = false, bool bInsertFront = false){
+	void add(ofxSFPLine & other,bool bReverse = false, bool bInsertFront = false){
 		if(bInsertFront){
 			if(bReverse){
 				pixels.insert(pixels.begin(),other.pixels.rbegin(),other.pixels.rend());

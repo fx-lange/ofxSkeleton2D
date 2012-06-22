@@ -28,9 +28,9 @@ public:
 	ofxCvGrayscaleImage grayBg;
 	ofImage background;
 
-	ofVideoPlayer vidPlayer;
+	ofVideoPlayer input;
 
-	ofxSkeleton2D skeletonTracker;
+	ofxSkeletonTracker2D skeletonTracker;
 	ofFbo * fbo;
 
 	//GUI

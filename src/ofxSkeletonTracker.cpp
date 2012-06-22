@@ -7,7 +7,7 @@
 
 #include "ofxSkeleton2D.h"
 
-void ofxSkeleton2D::setup(float _width, float _height) {
+void ofxSkeletonTracker2D::setup(float _width, float _height) {
 	width = _width;
 	height = _height;
 
@@ -41,25 +41,25 @@ void ofxSkeleton2D::setup(float _width, float _height) {
 	linePixels.resize(640);
 }
 
-ofxPanel * ofxSkeleton2D::getGui(){
+ofxPanel * ofxSkeletonTracker2D::getGui(){
 	return & gui.panel;
 }
 
-ofxPanel * ofxSkeleton2D::getImageprocessingPanel(){
+ofxPanel * ofxSkeletonTracker2D::getImageprocessingPanel(){
 	return & gui.imagePanel;
 }
 
-ofxPanel * ofxSkeleton2D::getShaderPanel(){
+ofxPanel * ofxSkeletonTracker2D::getShaderPanel(){
 	return & gui.shaderPanel;
 }
 
-ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background) {
+ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background) {
 	binary.absDiff(background, grayInput);
 	binary.threshold(gui.threshold);
 	return calcSfpAsFbo(binary);
 }
 
-ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
+ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 	contourFinder.findContours(binaryInput, 20, (340 * height) / 3, 10, true); // find holes
 
 	simpleContour.clear();
@@ -76,7 +76,7 @@ ofFbo * ofxSkeleton2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 	}
 }
 
-ofFbo * ofxSkeleton2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
+ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
 	voronoi.clear();
 	voronoi.setPolygon(silhouette);
 	//TODO contour points will be copied twice
@@ -119,7 +119,7 @@ ofFbo * ofxSkeleton2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
 	return &fbo;
 }
 
-void ofxSkeleton2D::calcSkeleton(){
+void ofxSkeletonTracker2D::calcSkeleton(){
 	GLubyte * ptr = readPixelsToPBO();
 
 	if(!ptr)
@@ -137,15 +137,15 @@ void ofxSkeleton2D::calcSkeleton(){
 	searchHeadAndArms();
 }
 
-void ofxSkeleton2D::drawBinary(float x, float y){
+void ofxSkeletonTracker2D::drawBinary(float x, float y){
 	binary.draw(x,y);
 }
 
-void ofxSkeleton2D::drawVoronoi(float x, float y){
+void ofxSkeletonTracker2D::drawVoronoi(float x, float y){
 	voronoi.drawFboOnScreen(x,y);
 }
 
-void ofxSkeleton2D::drawDebugTorso(float x,float y){
+void ofxSkeletonTracker2D::drawDebugTorso(float x,float y){
 	ofPushMatrix();
 	ofTranslate(x,y);
 	ofPushStyle();
@@ -173,7 +173,7 @@ void ofxSkeleton2D::drawDebugTorso(float x,float y){
 	ofPopMatrix();
 }
 
-void ofxSkeleton2D::drawDebugLines(float x, float y){
+void ofxSkeletonTracker2D::drawDebugLines(float x, float y){
 	ofPushMatrix();
 	ofTranslate(x,y);
 	ofPushStyle();
@@ -195,7 +195,7 @@ void ofxSkeleton2D::drawDebugLines(float x, float y){
 	ofPopMatrix();
 }
 
-void ofxSkeleton2D::drawDebugLimbs(float x, float y){
+void ofxSkeletonTracker2D::drawDebugLimbs(float x, float y){
 	ofPushMatrix();
 	ofTranslate(x,y);
 	ofPushStyle();
@@ -209,7 +209,7 @@ void ofxSkeleton2D::drawDebugLimbs(float x, float y){
 	ofPopMatrix();
 }
 
-void ofxSkeleton2D::drawDebugSkeleton(float x, float y){
+void ofxSkeletonTracker2D::drawDebugSkeleton(float x, float y){
 	ofPushMatrix();
 	ofTranslate(x,y);
 	ofPushStyle();
@@ -221,7 +221,7 @@ void ofxSkeleton2D::drawDebugSkeleton(float x, float y){
 	ofPopMatrix();
 }
 
-GLubyte * ofxSkeleton2D::readPixelsToPBO() {
+GLubyte * ofxSkeletonTracker2D::readPixelsToPBO() {
 	fbo.bind();
 	// read pixels from framebuffer to PBO
 	// glReadPixels() should return immediately.
@@ -237,7 +237,7 @@ GLubyte * ofxSkeleton2D::readPixelsToPBO() {
 	return (GLubyte*) glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY); //use frame t-1
 }
 
-void ofxSkeleton2D::createSFPGrid(GLubyte * pboPtr){
+void ofxSkeletonTracker2D::createSFPGrid(GLubyte * pboPtr){
 	//clearing
 	sfpList.clear();
 	torso.clear();
@@ -277,7 +277,8 @@ void ofxSkeleton2D::createSFPGrid(GLubyte * pboPtr){
 			//SFPs finden
 			if (r > 0.0) {
 				sfpList.push_back(ofPoint(x, y, d));
-				SFP p = SFP(x, y, d);
+				ofxSFP p = ofxSFP(x, y, 0);
+				p.depth = d;
 				p.isTorsoPoint = bIsTorsoP;
 				linePixels[x].push_back(p);
 				if (d > maxDepth) {
@@ -304,7 +305,7 @@ void ofxSkeleton2D::createSFPGrid(GLubyte * pboPtr){
 	glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 }
 
-void ofxSkeleton2D::torsoPCA(){
+void ofxSkeletonTracker2D::torsoPCA(){
 	cv::Mat coords = cv::Mat(0, xss.rows, CV_32F);
 	coords.push_back(cv::Mat(xss.t()));
 	coords.push_back(cv::Mat(yss.t())); //TODO seems very complicated?! - simplify!
@@ -329,11 +330,11 @@ void ofxSkeleton2D::torsoPCA(){
 	torsoLow = center + primTorsoDirection * length;
 }
 
-vector<SFP*> ofxSkeleton2D::findInit(SFP * active, int manhattenRadius) {
-	vector<SFP*> initPoints;
+vector<ofxSFP*> ofxSkeletonTracker2D::findInit(ofxSFP * active, int manhattenRadius) {
+	vector<ofxSFP*> initPoints;
 	for (int x = max((int) active->x - manhattenRadius, 0); x <= min(active->x + manhattenRadius, width - 1); ++x) {
 		for (unsigned int j = 0; j < linePixels[x].size(); ++j) {
-			SFP & nextTry = linePixels[x][j];
+			ofxSFP & nextTry = linePixels[x][j];
 			if (gui.bExcludeTorso && nextTry.isTorsoPoint) {
 				continue;
 			}
@@ -358,13 +359,13 @@ vector<SFP*> ofxSkeleton2D::findInit(SFP * active, int manhattenRadius) {
  * in einem kleinen Grid mit active als Mittelpunkt
  * nach eine Nachbarn mit möglichst kleinem Abstand (Manhatten-Metrik) suchen
  */
-SFP * ofxSkeleton2D::findNext(SFP * active, int manhattenRadius) {
+ofxSFP * ofxSkeletonTracker2D::findNext(ofxSFP * active, int manhattenRadius) {
 	int minDiff = manhattenRadius * 5;
-	SFP * next = NULL;
+	ofxSFP * next = NULL;
 	for (int x = max((int) active->x - manhattenRadius, 0); x <= min(active->x + manhattenRadius, width - 1); ++x) {
 		int xDiff = x - active->x;
 		for (unsigned int j = 0; j < linePixels[x].size(); ++j) {
-			SFP & nextTry = linePixels[x][j];
+			ofxSFP & nextTry = linePixels[x][j];
 			if (gui.bExcludeTorso && nextTry.isTorsoPoint) {
 				continue;
 			}
@@ -399,13 +400,13 @@ SFP * ofxSkeleton2D::findNext(SFP * active, int manhattenRadius) {
  * REVISIT ist denn der nächste der beste?!
  * Das gewünschte habe ich wohl schon in findNext umgesetzt - welches wird denn benutzt? findNext!
  */
-SFP * ofxSkeleton2D::findBest(SFP * last, SFP * active, int manhattenRadius) {
+ofxSFP * ofxSkeletonTracker2D::findBest(ofxSFP * last, ofxSFP * active, int manhattenRadius) {
 	int minDiff = manhattenRadius * 2;
-	SFP * next = NULL;
+	ofxSFP * next = NULL;
 	for (int x = max((int) active->x - manhattenRadius, 0); x <= min(active->x + manhattenRadius, width - 1); ++x) {
 		int xDiff = x - active->x;
 		for (unsigned int j = 0; j < linePixels[x].size(); ++j) {
-			SFP & nextTry = linePixels[x][j];
+			ofxSFP & nextTry = linePixels[x][j];
 			if (gui.bExcludeTorso && nextTry.isTorsoPoint) {
 				continue;
 			}
@@ -426,7 +427,7 @@ SFP * ofxSkeleton2D::findBest(SFP * last, SFP * active, int manhattenRadius) {
 	//TODO auf dem weg ++x könnte minDiff schon < +manhattenRadius sein - früher abbrechen
 }
 
-void ofxSkeleton2D::findLines() {
+void ofxSkeletonTracker2D::findLines() {
 	lines.clear();
 
 	//doppelte for-schleife um grid von SFPs zu durchlaufen
@@ -436,12 +437,12 @@ void ofxSkeleton2D::findLines() {
 	for (int x = 0; x < width; ++x) {
 		for (unsigned int i = 0; i < linePixels[x].size(); ++i) {
 
-			SFP & start = linePixels[x][i];
+			ofxSFP & start = linePixels[x][i];
 			if (start.used || (gui.bExcludeTorso && start.isTorsoPoint)) {
 				continue;
 			}
-			SFP * last = &start;
-			SFP * active;
+			ofxSFP * last = &start;
+			ofxSFP * active;
 			bool bFound = false;
 
 			/*liste an nachbarn zum startpunkt erstellen -
@@ -450,20 +451,20 @@ void ofxSkeleton2D::findLines() {
 			 TODO alternativ könnten mehrere entwickelt werden (nicht nur eine)
 			 oder die längste genommen werden (statt der ersten guten)
 			 */
-			vector<SFP*> initPoints = findInit(last, gui.manhattenRadius);
+			vector<ofxSFP*> initPoints = findInit(last, gui.manhattenRadius);
 			for (unsigned int j = 0; j < initPoints.size() && !bFound; ++j) {
 //				active = findNext(last, manhattenRadius);
 				active = initPoints[j];
 				if (active != NULL) {
 
 					//Linie erstellen und erste Punkte hinzufügen
-					SFPLine sfpLine; //REVISIT nicht umbedingt nötig eine ganze Linie zu speichern - Am Ende würden 2 Punkte reichen - oder kann man sie gebrauchen?
+					ofxSFPLine sfpLine; //REVISIT nicht umbedingt nötig eine ganze Linie zu speichern - Am Ende würden 2 Punkte reichen - oder kann man sie gebrauchen?
 					sfpLine.pixels.push_back(*last);
 					sfpLine.pixels.push_back(*active);
 					active->used = true; //REVISIT wieso wurde start bzw last noch nicht auf used=true gesetzt
 
 					//nach nächsten Punkt suchen mit findNext(SFP aktiv)
-					SFP * next;
+					ofxSFP * next;
 					if (gui.bFindBest) {
 						next = findBest(last, active, gui.manhattenRadius);
 					} else {
@@ -550,15 +551,15 @@ void ofxSkeleton2D::findLines() {
  * 		man könnte mergeLines() und createLimbs() zusammenfassen indem man
  * 		SFPLine und SLimb in einer Klasse zusammenfasst
  */
-void ofxSkeleton2D::mergeLines() {
+void ofxSkeletonTracker2D::mergeLines() {
 	for (unsigned int i = 0; i < lines.size(); ++i) {
-		SFPLine & line = lines[i];
+		ofxSFPLine & line = lines[i];
 		if (line.bMerged) {
 			continue;
 		}
 
 		for (unsigned int j = 0; j < lines.size(); ++j) { //TODO j könnte auch bei i anfangen?!
-			SFPLine & other = lines[j];
+			ofxSFPLine & other = lines[j];
 			if (i == j || other.bMerged) {
 				continue;
 			}
@@ -593,7 +594,7 @@ void ofxSkeleton2D::mergeLines() {
 		}
 	}
 	//übrige (verschmolzende) Linen löschen
-	vector<SFPLine>::iterator it = lines.begin();
+	vector<ofxSFPLine>::iterator it = lines.begin();
 	for (; it != lines.end();) {
 		if (it->bMerged) {
 			it = lines.erase(it);
@@ -603,32 +604,32 @@ void ofxSkeleton2D::mergeLines() {
 	}
 }
 
-void ofxSkeleton2D::createLimbs() {
+void ofxSkeletonTracker2D::createLimbs() {
 	limbs.clear(); //memory leak
 	for (int i = 0; i < lines.size(); ++i) {
-		SFPLine & line = lines[i];
-		SLimb * limb = NULL;
+		ofxSFPLine & line = lines[i];
+		ofxSLimb * limb = NULL;
 		if (line.limb != NULL) {
 			continue;
 		} else {
-			line.limb = limb = new SLimb(line.first(), line.last());
+			line.limb = limb = new ofxSLimb(line.first(), line.last());
 		}
 
 		for (int j = 0; j < lines.size(); ++j) {
-			SFPLine & other = lines[j];
+			ofxSFPLine & other = lines[j];
 			if (other.limb != NULL) {
 				continue;
 			}
-			if (limb->last().distance(other.first()) < gui.maxMergeDistance) {
+			if (limb->last().distance(other.first()) < gui.maxLimbPointDistance) {
 				limb->join(other.first(), other.last(), false);
 				other.limb = limb;
-			} else if (limb->last().distance(other.last()) < gui.maxMergeDistance) {
+			} else if (limb->last().distance(other.last()) < gui.maxLimbPointDistance) {
 				limb->join(other.last(), other.first(), false);
 				other.limb = limb;
-			} else if (limb->first().distance(other.last()) < gui.maxMergeDistance) {
+			} else if (limb->first().distance(other.last()) < gui.maxLimbPointDistance) {
 				limb->join(other.last(), other.first(), true);
 				other.limb = limb;
-			} else if (limb->first().distance(other.first()) < gui.maxMergeDistance) {
+			} else if (limb->first().distance(other.first()) < gui.maxLimbPointDistance) {
 				limb->join(other.first(), other.last(), true);
 				other.limb = limb;
 			}
@@ -637,10 +638,10 @@ void ofxSkeleton2D::createLimbs() {
 	}
 }
 
-void ofxSkeleton2D::searchHeadAndArms() {
+void ofxSkeletonTracker2D::searchHeadAndArms() {
 	//TODO wirkt sehr aufwenig um die 3 nächsten zu suchen.
 
-	vector<SLimb*> nearest;
+	vector<ofxSLimb*> nearest;
 	vector<float> minDistances;
 	minDistances.push_back(20000);
 	minDistances.push_back(20000);
@@ -654,7 +655,7 @@ void ofxSkeleton2D::searchHeadAndArms() {
 	nearest.push_back(NULL);
 
 	for (int i = 0; i < limbs.size(); ++i) {
-		SLimb * limb = limbs[i];
+		ofxSLimb * limb = limbs[i];
 		float distanceToCheck = 0;
 		float distanceFirst = limb->first().distance(torsoHigh);
 		float distanceLast = limb->last().distance(torsoHigh);
@@ -678,7 +679,7 @@ void ofxSkeleton2D::searchHeadAndArms() {
 		}
 	}
 
-	vector<SLimb*> minAngleLimbs;
+	vector<ofxSLimb*> minAngleLimbs;
 	vector<float> minAngles;
 	minAngles.push_back(20000);
 	minAngles.push_back(20000);
@@ -699,8 +700,9 @@ void ofxSkeleton2D::searchHeadAndArms() {
 	ofVec2f v2 = torsoHigh - torsoLow;
 	float maxAngle = 150.f;
 	for (int i = 0; i < limbs.size(); ++i) {
-		SLimb * limb = limbs[i];
-		ofVec2f v1 = limbs[i]->getLimbStart() - torsoHigh;
+		ofxSLimb * limb = limbs[i];
+		ofPoint * sJoint = limb->getLimbStart();
+		ofVec2f v1 = *sJoint - torsoHigh;
 		float tmpAngle = abs(v1.angle(v2));
 		limb->startAngle = tmpAngle;
 		for (int j = 0; j < 5; ++j) {
@@ -717,26 +719,27 @@ void ofxSkeleton2D::searchHeadAndArms() {
 	}
 
 	int nextIdx = 0;
-	skeleton.head = skeleton.arms[0] = skeleton.arms[1] = skeleton.legs[0] = skeleton.legs[1] = NULL; //TODO reset() skeleton
+//	skeleton.neckToHead = skeleton.arms[0] = skeleton.arms[1] = skeleton.legs[0] = skeleton.legs[1] = NULL; //TODO reset() skeleton
+	skeleton.reset();
 	if (minAngleLimbs[nextIdx] != NULL) {
-		skeleton.head = minAngleLimbs[nextIdx];
+		skeleton.neckToHead.copy(minAngleLimbs[nextIdx]);
 		++nextIdx;
 
 		//arms
 		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
-			skeleton.arms[0] = minAngleLimbs[nextIdx];
+			skeleton.arms[0].copy(minAngleLimbs[nextIdx]);
 			++nextIdx;
 			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
-				skeleton.arms[1] = minAngleLimbs[nextIdx];
+				skeleton.arms[1].copy(minAngleLimbs[nextIdx]);
 				++nextIdx;
 			}
 		}
 
 		//legs
 		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle > maxAngle) {
-			skeleton.legs[0] = minAngleLimbs[nextIdx];
+			skeleton.legs[0].copy(minAngleLimbs[nextIdx]);
 			if (minAngleLimbs[nextIdx + 1] != NULL && minAngleLimbs[nextIdx + 1]->startAngle > maxAngle) {
-				skeleton.legs[1] = minAngleLimbs[nextIdx + 1];
+				skeleton.legs[1].copy(minAngleLimbs[nextIdx + 1]);
 			}
 		}
 	}

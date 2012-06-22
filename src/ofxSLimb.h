@@ -1,29 +1,40 @@
-/*
- * ofxSLimb.h
- *
- *  Created on: Jun 18, 2012
- *      Author: spta
- */
-
 #ifndef OFXSLIMB_H_
 #define OFXSLIMB_H_
 
 #include "ofMain.h"
 
-class SLimb{
+class ofxSLimb{
 public:
 	vector<ofPoint> joints;
-	SLimb(){	}
 	ofColor color;
-	bool bReverseOrder;//TODO könnte diesen boolean durch einen entsprechend vorbereiteten revereseIterator ersetzen
+	bool bReverseOrder;//TODO replace boolean with revereseIterator
 	float startAngle;
 
-	SLimb(ofPoint & p1, ofPoint & p2){
+	bool bFound;
+
+	ofxSLimb(){
+		bFound = false;
+	}
+
+	ofxSLimb(ofPoint & p1, ofPoint & p2){
 		joints.clear();
 		joints.push_back(p1);
 		joints.push_back(p2);
 		color.set(255,255,255,100);
 		startAngle = -1.f;
+		bFound = true;
+	}
+
+	void copy(ofxSLimb * other){
+		bReverseOrder = other->bReverseOrder;
+		color = other->color;
+		joints.insert(joints.begin(),other->joints.begin(),other->joints.end());
+		bFound = true;
+	}
+
+	void clear(){
+		bFound = false;
+		joints.clear();
 	}
 
 	ofPoint & first(){
@@ -35,24 +46,30 @@ public:
 	}
 
 
-	ofPoint & getLimbStart(){
+	ofPoint * getLimbStart(){
+		if(!bFound)
+			return NULL;
+
 		if(bReverseOrder)
-			return joints.back();
-		return joints.front();
+			return &joints.back();
+		return &joints.front();
 	}
 
-	ofPoint & getLimbEnd(){
+	ofPoint * getLimbEnd() {
+		if(!bFound)
+			return NULL;
+
 		if(bReverseOrder)
-			return joints.front();
-		return joints.back();
+			return &joints.front();
+		return &joints.back();
 	}
 
 	void join(ofPoint & jointP, ofPoint & newEndP, bool bInsertFront){
 		if(bInsertFront){
-			joints.front() = jointP;//TODO Schnittpunkt aus beiden statt Ersetzen
+			joints.front() = jointP;//TODO insert intersection (or median)
 			joints.insert(joints.begin(),newEndP);
 		}else{
-			joints.back() = jointP;//TODO Schnittpunkt aus beiden statt Ersetzen
+			joints.back() = jointP;//TODO insert intersection (or median)
 			joints.push_back(newEndP);
 		}
 
