@@ -42,7 +42,6 @@ public:
 	ofxToggle bMergeLines;
 	ofxFloatSlider maxMergeDistance;
 	ofxFloatSlider maxMergeAngle;
-	ofxFloatSlider maxLimbPointDistance;
 
 	//Torso
 	ofxPanel torsoPanel;
@@ -52,6 +51,9 @@ public:
 	//Pose Estimation
 	ofxPanel poseEstimationPanel;
 	ofxFloatSlider maxAngleHead;
+	ofxFloatSlider maxLimbPointDistance;
+	ofxFloatSlider minlineLength;
+	ofxFloatSlider minLimbLengthSum;
 
 	ofxSkeletonGui(){
 		panel.setup("ofxSkeleton2D","skeletonGui.xml");
@@ -85,7 +87,6 @@ public:
 		mergePanel.add(bMergeLines.setup("merge them",false));
 		mergePanel.add(maxMergeDistance.setup("max merge distance",10,1,50));
 		mergePanel.add(maxMergeAngle.setup("max merge angle",10,1,50));
-		mergePanel.add(maxLimbPointDistance.setup("max limb point dist",10,1,50));
 		panel.add(&mergePanel);
 
 		torsoPanel.setup("torso");
@@ -95,6 +96,9 @@ public:
 		panel.add(&torsoPanel);
 
 		poseEstimationPanel.setup("pose estimation");
+		poseEstimationPanel.add(maxLimbPointDistance.setup("max limb point dist",10,1,50));
+		poseEstimationPanel.add(minlineLength.setup("min line length",20,1,50));
+		poseEstimationPanel.add(minLimbLengthSum.setup("min limb length",40,1,100));
 		poseEstimationPanel.add(maxAngleHead.setup("max angle head",30,1,90));
 		panel.add(&poseEstimationPanel);
 	}

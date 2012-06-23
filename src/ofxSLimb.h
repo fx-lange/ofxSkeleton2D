@@ -75,6 +75,16 @@ public:
 
 	}
 
+	float getLengthSquared(){
+		float result = 0;
+		for(int i=0;i<joints.size()-1;++i){
+			ofPoint & p = joints[i];
+			ofPoint & q = joints[i+1];
+			result += p.squareDistance(q);
+		}
+		return result;
+	}
+
 	void draw(float x=0, float y=0){
 		ofPushMatrix();
 		ofPushStyle();

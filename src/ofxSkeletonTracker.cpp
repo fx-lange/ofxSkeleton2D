@@ -522,13 +522,18 @@ void ofxSkeletonTracker2D::findLines() {
 								next = findNext(active, gui.manhattenRadius);
 							}
 						} else {
-							next->freeBeatenNeighbors();
+							if(gui.bFindBest && !gui.bSecondChance && gui.manhattenRadius / ++chances > 1){
+								next->freeBeatenNeighbors();
+								//try smaller radius
+								next = findBest(last, active, gui.manhattenRadius / chances);
+							}
+
 							/* SECOND CHANCE - Ausreißer mit schlechten Winkeln überspringen und Nachfolger prüfen
 							 * wenn Winkel zu groß wird der Punkt trotzdem hinzugefügt - temporär
 							 * es wird dann in C Versuchen die Linie weitergebildet
 							 * in der Hoffnung, dass die Winkel wieder kleiner werden
 							 */
-							if (gui.bSecondChance && chances < gui.maxChances) {
+							else if (gui.bSecondChance && chances < gui.maxChances) {
 								next->used = true;
 								sfpLine.pixels.push_back(*next);
 								next = findNext(next, gui.manhattenRadius); //TODO wieso hier immer findNext?!
@@ -547,6 +552,7 @@ void ofxSkeletonTracker2D::findLines() {
 					} else {
 						for (unsigned int j = 0; j < sfpLine.pixels.size(); ++j) {
 							sfpLine.pixels[j].used = false;
+							sfpLine.pixels[j].freeBeatenNeighbors();
 						}
 					}
 				}
@@ -645,11 +651,12 @@ void ofxSkeletonTracker2D::mergeLines() {
 }
 
 void ofxSkeletonTracker2D::createLimbs() {
-	limbs.clear(); //memory leak
+	float squaredMinLimbLength = gui.minlineLength*gui.minlineLength;
+	limbs.clear(); //TODO memory leak
 	for (int i = 0; i < lines.size(); ++i) {
 		ofxSFPLine & line = lines[i];
 		ofxSLimb * limb = NULL;
-		if (line.limb != NULL) {
+		if (line.limb != NULL || line.lengthSquared() < squaredMinLimbLength) {
 			continue;
 		} else {
 			line.limb = limb = new ofxSLimb(line.first(), line.last());
@@ -659,7 +666,7 @@ void ofxSkeletonTracker2D::createLimbs() {
 
 			//TODO i != j
 			ofxSFPLine & other = lines[j];
-			if (other.limb != NULL) {
+			if (other.limb != NULL || other.lengthSquared() < squaredMinLimbLength) {
 				continue;
 			}
 			if (limb->last().distance(other.first()) < gui.maxLimbPointDistance) {
@@ -745,8 +752,12 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 	//sort SLimbs after their smallest angle to the primary component of the torso
 	ofVec2f v2 = torsoHigh - torsoLow;
 	float maxAngle = 150.f;
+	float squaredMinLimbLength = gui.minLimbLengthSum * gui.minLimbLengthSum;
 	for (int i = 0; i < limbs.size(); ++i) {
 		ofxSLimb * limb = limbs[i];
+		if(limb->getLengthSquared() < squaredMinLimbLength){
+			continue;
+		}
 		ofPoint * sJoint = limb->getLimbStart();
 		ofVec2f v1 = *sJoint - torsoHigh;
 		float tmpAngle = abs(v1.angle(v2));
@@ -774,15 +785,18 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 		}
 
 		//arms
-		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
+//		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
+		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < bbTorso.y + bbTorso.height) {
 			skeleton.arms[0].copy(minAngleLimbs[nextIdx]);
 			++nextIdx;
-			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
+//			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
+			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < bbTorso.y + bbTorso.height) {
 				skeleton.arms[1].copy(minAngleLimbs[nextIdx]);
 				++nextIdx;
 			}
 		}
 
+		//TODO!!!!
 		//legs
 		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle > maxAngle) {
 			skeleton.legs[0].copy(minAngleLimbs[nextIdx]);

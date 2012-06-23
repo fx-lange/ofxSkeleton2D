@@ -43,6 +43,14 @@ public:
 		return pixels[size()-1];
 	}
 
+	float lengthSquared(){
+		return first().distanceSquared(last());
+	}
+
+	float length(){
+		return first().distance(last());
+	}
+
 	void add(ofxSFPLine & other,bool bReverse = false, bool bInsertFront = false){
 		if(bInsertFront){
 			if(bReverse){
