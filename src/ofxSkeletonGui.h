@@ -32,7 +32,8 @@ public:
 	ofxIntSlider manhattenRadius;
 	ofxToggle bEasyStartAngle;
 	ofxIntSlider easyStartFaktor;
-	ofxToggle bFindBest;
+	ofxToggle bFindBest; //or what?
+	ofxToggle bUseFindInit;
 	ofxToggle bSecondChance;
 	ofxIntSlider maxChances;
 
@@ -47,6 +48,10 @@ public:
 	ofxPanel torsoPanel;
 	ofxToggle bExcludeTorso;
 	ofxFloatSlider torsoThreshold;
+
+	//Pose Estimation
+	ofxPanel poseEstimationPanel;
+	ofxFloatSlider maxAngleHead;
 
 	ofxSkeletonGui(){
 		panel.setup("ofxSkeleton2D","skeletonGui.xml");
@@ -72,6 +77,7 @@ public:
 		linePanel.add(bSecondChance.setup("second chance",false));
 		linePanel.add(maxChances.setup("max chances",1,1,10));
 		linePanel.add(bFindBest.setup("use findBest",true));
+		linePanel.add(bUseFindInit.setup("use find init",true));
 		panel.add(&linePanel);
 
 		mergePanel.setup("merge lines");
@@ -87,6 +93,10 @@ public:
 		torsoPanel.add(bExcludeTorso.setup("exclude torso",true));
 		torsoPanel.add(torsoThreshold.setup("torso threshold",0.7,0,1));
 		panel.add(&torsoPanel);
+
+		poseEstimationPanel.setup("pose estimation");
+		poseEstimationPanel.add(maxAngleHead.setup("max angle head",30,1,90));
+		panel.add(&poseEstimationPanel);
 	}
 };
 

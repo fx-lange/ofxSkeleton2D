@@ -184,9 +184,9 @@ void ofxSkeletonTracker2D::drawDebugLines(float x, float y){
 		ofPoint & p1 = lines[i][0];
 		ofPoint & p2 = lines[i][lines[i].size() - 1];
 		ofSetColor(255, 255, 0, 100);
-		ofEllipse(p1.x, p1.y, 15, 15);
+		ofEllipse(p1.x, p1.y, 5, 5);
 		ofSetColor(0, 255, 255, 100);
-		ofEllipse(p2.x, p2.y, 15, 15);
+		ofEllipse(p2.x, p2.y, 5, 5);
 		ofSetColor(0, 0, 255);
 		ofLine(p1.x, p1.y, p2.x, p2.y);
 	}
@@ -344,11 +344,6 @@ vector<ofxSFP*> ofxSkeletonTracker2D::findInit(ofxSFP * active, int manhattenRad
 			} else if (yDiff > manhattenRadius) {
 				break;
 			} else {
-//					int tmpDiff = abs(xDiff)+abs(yDiff);
-//					if(tmpDiff<minDiff){
-//						next = &nextTry;
-//						minDiff = tmpDiff;
-//					}
 				initPoints.push_back(&nextTry);
 			}
 		}
@@ -398,11 +393,12 @@ ofxSFP * ofxSkeletonTracker2D::findNext(ofxSFP * active, int manhattenRadius) {
  * es wird sich von links nach rechts und oben nach unten durchs grid bewegt
  * TODO minDiff wird aber nicht aktualisiert
  * REVISIT ist denn der nächste der beste?!
- * Das gewünschte habe ich wohl schon in findNext umgesetzt - welches wird denn benutzt? findNext!
+ * Das gewünschte habe ich wohl schon in findNext umgesetzt - welches wird denn benutzt? findBest!
  */
 ofxSFP * ofxSkeletonTracker2D::findBest(ofxSFP * last, ofxSFP * active, int manhattenRadius) {
 	int minDiff = manhattenRadius * 2;
 	ofxSFP * next = NULL;
+	vector<ofxSFP*> beatenNeighbors;
 	for (int x = max((int) active->x - manhattenRadius, 0); x <= min(active->x + manhattenRadius, width - 1); ++x) {
 		int xDiff = x - active->x;
 		for (unsigned int j = 0; j < linePixels[x].size(); ++j) {
@@ -416,13 +412,19 @@ ofxSFP * ofxSkeletonTracker2D::findBest(ofxSFP * last, ofxSFP * active, int manh
 			} else if (yDiff > manhattenRadius) {
 				break;
 			} else {
-				if (max(abs(xDiff), abs(yDiff)) < minDiff) {
-					next = &nextTry;
-				}
+//				if (max(abs(xDiff), abs(yDiff)) < manhattenRadius) {//REVISIT checked twice
+				if(next!=NULL)
+					beatenNeighbors.push_back(next);
+				next = &nextTry;
+//				}else{
+//					beatenNeighbors.push_back(&nextTry);
+//				}
 				nextTry.used = true;
 			}
 		}
 	}
+	if(next!=NULL)
+		next->beatenNeighbors = beatenNeighbors;
 	return next;
 	//TODO auf dem weg ++x könnte minDiff schon < +manhattenRadius sein - früher abbrechen
 }
@@ -442,6 +444,7 @@ void ofxSkeletonTracker2D::findLines() {
 				continue;
 			}
 			ofxSFP * last = &start;
+			last->used = true;
 			ofxSFP * active;
 			bool bFound = false;
 
@@ -451,7 +454,16 @@ void ofxSkeletonTracker2D::findLines() {
 			 TODO alternativ könnten mehrere entwickelt werden (nicht nur eine)
 			 oder die längste genommen werden (statt der ersten guten)
 			 */
-			vector<ofxSFP*> initPoints = findInit(last, gui.manhattenRadius);
+			vector<ofxSFP*> initPoints;
+			if(gui.bUseFindInit){
+				initPoints = findInit(last, gui.manhattenRadius);
+			}else{
+				if(gui.bFindBest){
+					initPoints.push_back(findBest(NULL,last,gui.manhattenRadius));
+				}else{
+					initPoints.push_back(findNext(last,gui.manhattenRadius));
+				}
+			}
 			for (unsigned int j = 0; j < initPoints.size() && !bFound; ++j) {
 //				active = findNext(last, manhattenRadius);
 				active = initPoints[j];
@@ -466,7 +478,7 @@ void ofxSkeletonTracker2D::findLines() {
 					//nach nächsten Punkt suchen mit findNext(SFP aktiv)
 					ofxSFP * next;
 					if (gui.bFindBest) {
-						next = findBest(last, active, gui.manhattenRadius);
+						next = findBest(NULL, active, gui.manhattenRadius);
 					} else {
 						next = findNext(active, gui.manhattenRadius);
 					}
@@ -510,6 +522,7 @@ void ofxSkeletonTracker2D::findLines() {
 								next = findNext(active, gui.manhattenRadius);
 							}
 						} else {
+							next->freeBeatenNeighbors();
 							/* SECOND CHANCE - Ausreißer mit schlechten Winkeln überspringen und Nachfolger prüfen
 							 * wenn Winkel zu groß wird der Punkt trotzdem hinzugefügt - temporär
 							 * es wird dann in C Versuchen die Linie weitergebildet
@@ -563,7 +576,34 @@ void ofxSkeletonTracker2D::mergeLines() {
 			if (i == j || other.bMerged) {
 				continue;
 			}
-			if (line.last().distance(other.first()) < gui.maxMergeDistance) {
+
+			int mergeCase = 0;
+			float minDistance = gui.maxMergeDistance;
+			//TODO use a tmpDistance
+			float tmpDistance = line.last().distance(other.first());
+			if (tmpDistance < minDistance) {
+				mergeCase = 1;
+				minDistance = tmpDistance;
+			}
+
+			tmpDistance = line.last().distance(other.last());
+			if (tmpDistance < minDistance) {
+				mergeCase = 2;
+				minDistance = tmpDistance;
+			}
+
+			tmpDistance = line.first().distance(other.last());
+			if (tmpDistance < minDistance) {
+				mergeCase = 3;
+				minDistance = tmpDistance;
+			}
+
+			tmpDistance = line.first().distance(other.first());
+			if (tmpDistance < minDistance) {
+				mergeCase = 4;
+			}
+
+			if(mergeCase == 1){
 				ofVec2f v1 = line.last() - line.first();
 				ofVec2f v2 = other.last() - other.first();
 				if (abs(v1.angle(v2)) < gui.maxMergeAngle) {
@@ -572,19 +612,19 @@ void ofxSkeletonTracker2D::mergeLines() {
 					//Aus Linien Gliedmaßen bilden
 					//Fälle Line ist schon ein Glied
 				}
-			} else if (line.last().distance(other.last()) < gui.maxMergeDistance) {
+			}else if(mergeCase == 2){
 				ofVec2f v1 = line.last() - line.first();
 				ofVec2f v2 = other.first() - other.last();
 				if (abs(v1.angle(v2)) < gui.maxMergeAngle) {
 					line.add(other, true);
 				}
-			} else if (line.first().distance(other.last()) < gui.maxMergeDistance) {
+			}else if(mergeCase == 3){
 				ofVec2f v1 = line.first() - line.last();
 				ofVec2f v2 = other.first() - other.last();
 				if (abs(v1.angle(v2)) < gui.maxMergeAngle) {
 					line.add(other, false, true);
 				}
-			} else if (line.first().distance(other.first()) < gui.maxMergeDistance) {
+			}else if(mergeCase == 4){
 				ofVec2f v1 = line.first() - line.last();
 				ofVec2f v2 = other.last() - other.first();
 				if (abs(v1.angle(v2)) < gui.maxMergeAngle) {
@@ -616,6 +656,8 @@ void ofxSkeletonTracker2D::createLimbs() {
 		}
 
 		for (int j = 0; j < lines.size(); ++j) {
+
+			//TODO i != j
 			ofxSFPLine & other = lines[j];
 			if (other.limb != NULL) {
 				continue;
@@ -654,6 +696,8 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 	nearest.push_back(NULL);
 	nearest.push_back(NULL);
 
+
+	//sort SLimbs after their smallest distance to torsoHigh
 	for (int i = 0; i < limbs.size(); ++i) {
 		ofxSLimb * limb = limbs[i];
 		float distanceToCheck = 0;
@@ -697,6 +741,8 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 	//a) v2 = torsoLow_torsoHigh v1 = torsoHigh_limbStart -> dcVcb
 	//b) v2 = torsoLow_torsoHigh v1 = limbStart_limbEnd -> dcVba
 	// a) is better than b)
+
+	//sort SLimbs after their smallest angle to the primary component of the torso
 	ofVec2f v2 = torsoHigh - torsoLow;
 	float maxAngle = 150.f;
 	for (int i = 0; i < limbs.size(); ++i) {
@@ -719,11 +765,13 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 	}
 
 	int nextIdx = 0;
-//	skeleton.neckToHead = skeleton.arms[0] = skeleton.arms[1] = skeleton.legs[0] = skeleton.legs[1] = NULL; //TODO reset() skeleton
 	skeleton.reset();
 	if (minAngleLimbs[nextIdx] != NULL) {
-		skeleton.neckToHead.copy(minAngleLimbs[nextIdx]);
-		++nextIdx;
+
+		if(minAngles[nextIdx] <= gui.maxAngleHead){
+			skeleton.neckToHead.copy(minAngleLimbs[nextIdx]);
+			++nextIdx;
+		}
 
 		//arms
 		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {

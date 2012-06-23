@@ -20,7 +20,7 @@ public:
 		joints.clear();
 		joints.push_back(p1);
 		joints.push_back(p2);
-		color.set(255,255,255,100);
+		color.set(255,255,255,50);
 		startAngle = -1.f;
 		bFound = true;
 	}
@@ -83,9 +83,18 @@ public:
 		ofFill();
 		ofPoint & p1 = first();
 		ofPoint & p2 = last();
-		ofEllipse(p1.x,p1.y,20,20);
-		ofEllipse(p2.x,p2.y,20,20);
+		ofEllipse(p1.x,p1.y,10,10);
+		ofEllipse(p2.x,p2.y,10,10);
 		ofLine(p1.x,p1.y,p2.x,p2.y);
+
+		for(int i=0;i<joints.size()-1;++i){
+			ofPoint & p = joints[i];
+			ofPoint & q = joints[i+1];
+			int dist = round(p.distance(q));
+			ofVec3f middle = (p+q)/2.f;
+			ofSetColor(255,255,255);
+			ofDrawBitmapString(ofToString(dist),middle);
+		}
 
 		ofPopMatrix();
 		ofPopStyle();
