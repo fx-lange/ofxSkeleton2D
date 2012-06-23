@@ -300,6 +300,8 @@ void ofxSkeletonTracker2D::createSFPGrid(GLubyte * pboPtr){
 		bb1.x = xss.at<float>(0);
 		bb2.x = xss.at<float>(xss.rows - 1);
 		bbTorso.set(bb1, bb2.x - bb1.x, bb2.y - bb1.y);
+
+		skeleton.torsoBB = bbTorso;
 	}
 
 	glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
@@ -805,6 +807,8 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 			}
 		}
 	}
+
+	skeleton.update();
 
 //	//Unterscheidung von Kopf und Fuß über Ähnlichkeit der Winkel zum Torso
 //	//TODO Gerade Arme oder sehr schiefer Kopf könnten hier Fehler verursachen
