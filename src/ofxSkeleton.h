@@ -10,6 +10,7 @@
 
 #include "ofMain.h"
 #include "ofxSLimb.h"
+#include "ofxSkeletonGui.h"
 
 class ofxSkeleton {
 
@@ -22,16 +23,10 @@ public:
 
 	int leftHandIdx;
 
+	ofxSkeletonGui * gui;
+
 	ofxSkeleton(){
 
-		//limbs
-//		neckToHead = NULL;
-//		arms[0] = NULL;
-//		arms[1] = NULL;
-//		legs[0] = NULL;
-//		legs[1] = NULL;
-
-		//joints
 	}
 
 	void reset();
@@ -53,6 +48,15 @@ public:
 
 	ofPoint * getLeftElbow();
 	ofPoint * getRightElbow();
+
+	ofPoint * getLeftUpperTorso();
+	ofPoint * getRightUpperTorso();
+protected:
+	ofPoint leftShoulder, rightShoulder;
+	ofPoint elbow[2];
+	ofPoint upperTorsoBB[2];
+
+	ofPoint * getElbow(int idx);
 
 };
 

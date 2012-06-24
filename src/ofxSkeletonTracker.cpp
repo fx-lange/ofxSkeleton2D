@@ -39,6 +39,8 @@ void ofxSkeletonTracker2D::setup(float _width, float _height) {
 	yss.create(0, 1, CV_32F);
 
 	linePixels.resize(640);
+
+	skeleton.gui = &gui;
 }
 
 ofxPanel * ofxSkeletonTracker2D::getGui(){
