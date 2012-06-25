@@ -3,6 +3,7 @@
 
 #include "ofMain.h"
 #include "ofxSLimb.h"
+#include "ofxSJoint.h"
 #include "ofxSkeletonGui.h"
 
 class ofxSkeleton {
@@ -40,38 +41,39 @@ public:
 	}
 
 	ofPoint * getHead() {
-		return &head;
+		return head.getBufferedPosition();
 	}
 	ofPoint * getNeck() {
-		return neckToHead.getLimbStart();
+		return neckToHead.getLimbStart(); //TODO not buffered
 	}
 	ofPoint * getLeftHand() {
-		return &leftHand;
+		return leftHand.getBufferedPosition();
 	}
 	ofPoint * getRightHand() {
-		return &rightHand;
+		return rightHand.getBufferedPosition();
 	}
 	ofPoint * getLeftElbow() {
-		return &elbow[0];
+		return elbow[0].getBufferedPosition();
 	}
 	ofPoint * getRightElbow() {
-		return &elbow[1];
+		return elbow[1].getBufferedPosition();
 	}
 	ofPoint * getLeftUpperTorso() {
-		return &leftUpperTorso;
+		return leftUpperTorso.getBufferedPosition();
 	}
 	ofPoint * getRightUpperTorso() {
-		return &rightUpperTorso;
+		return rightUpperTorso.getBufferedPosition();
 	}
 
 protected:
 	int leftHandIdx;
 
-	ofPoint head;
-	ofPoint leftUpperTorso, rightUpperTorso;
-	ofPoint elbow[2];
+	ofxSJoint head;
+	ofxSJoint leftUpperTorso, rightUpperTorso;
+	ofxSJoint elbow[2];
+	ofxSJoint leftHand, rightHand;
+
 	ofPoint upperTorsoFromBB[2];
-	ofPoint leftHand, rightHand;
 
 
 	void calcHead();

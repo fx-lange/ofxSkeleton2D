@@ -12,11 +12,9 @@ void ofxSkeleton::calcHead(){
 	ofPoint * headTmp = neckToHead.getLimbEnd();
 	ofPoint * neckTmp = neckToHead.getLimbStart();
 	if(headTmp != NULL && neckTmp != NULL){
-		head = *neckTmp - *headTmp;
-		head *= gui->headNeckRatio;
-		head += *headTmp;
+		head = ((*neckTmp - *headTmp) * gui->headNeckRatio) + *headTmp;
 	}else{
-		//TODO else
+		head.bFound = false;
 	}
 }
 
@@ -25,7 +23,7 @@ void ofxSkeleton::locateLeftHand(){
 	if(p != NULL){
 		leftHand = *p;
 	}else{
-		//TODO
+		leftHand.bFound = false;
 	}
 }
 
@@ -34,7 +32,7 @@ void ofxSkeleton::locateRightHand(){
 	if(p != NULL){
 		rightHand = *p;
 	}else{
-		//TODO
+		rightHand.bFound = false;
 	}
 }
 
@@ -76,7 +74,7 @@ void ofxSkeleton::locateElbow(int index){
 		}
 
 	}else{
-		//TODO
+		elbow[index].bFound = false;
 	}
 }
 
@@ -89,23 +87,15 @@ void ofxSkeleton::locateRightElbow(){
 }
 
 void ofxSkeleton::locateLeftUpperTorso(){
-	ofPoint * elbow = getLeftElbow();
-	if(elbow != NULL){
-		ofPoint leftUpperArm = *elbow - upperTorsoFromBB[0];
-		leftUpperTorso = leftUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[0];
-	}else{
-		//TODO
-	}
+	ofPoint leftUpperArm = elbow[0] - upperTorsoFromBB[0];
+	leftUpperTorso = leftUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[0];
+	leftUpperTorso.bFound = elbow[0].bFound;
 }
 
 void ofxSkeleton::locateRightUpperTorso(){
-	ofPoint * elbow = getRightElbow();
-	if(elbow != NULL){
-		ofPoint rightUpperArm = *elbow - upperTorsoFromBB[1];
-		rightUpperTorso = rightUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[1];
-	}else{
-		//TODO
-	}
+	ofPoint rightUpperArm = elbow[1] - upperTorsoFromBB[1];
+	rightUpperTorso = rightUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[1];
+	rightUpperTorso.bFound = elbow[1].bFound;
 }
 
 void ofxSkeleton::update(){
