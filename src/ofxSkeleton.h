@@ -1,10 +1,3 @@
-/*
- * ofxSkeleton.h
- *
- *  Created on: Jun 18, 2012
- *      Author: spta
- */
-
 #ifndef OFXSKELETON_H_
 #define OFXSKELETON_H_
 
@@ -13,51 +6,85 @@
 #include "ofxSkeletonGui.h"
 
 class ofxSkeleton {
+	//TODO calc average head size
+	//TODO use average head size to improve pose estimation
+	//TODO use buffer for positions
+	//REVISIT improve inner joings by using original SFPLine Points instead of joints?!
 
 public:
-	ofxSLimb neckToHead,
-		arms[2],
-		legs[2];
+	//TODO should be protected - possible misuse
+	ofxSLimb neckToHead, arms[2], legs[2];
 
 	ofRectangle torsoBB;
-
-	int leftHandIdx;
+	ofPoint torsoCenter;
 
 	ofxSkeletonGui * gui;
 
-	ofxSkeleton(){
-
+	ofxSkeleton() {
 	}
 
 	void reset();
-
 	void update();
 	void draw();
 
-
-	ofPoint * getHead(){
-		return neckToHead.getLimbEnd();
+	bool foundHead() {
+		return neckToHead.bFound;
 	}
 
-	ofPoint * getNeck(){
+	bool foundLeftArm() {
+		return arms[leftHandIdx].bFound;
+	}
+
+	bool foundRightArm() {
+		return arms[1 - leftHandIdx].bFound;
+	}
+
+	ofPoint * getHead() {
+		return &head;
+	}
+	ofPoint * getNeck() {
 		return neckToHead.getLimbStart();
 	}
+	ofPoint * getLeftHand() {
+		return &leftHand;
+	}
+	ofPoint * getRightHand() {
+		return &rightHand;
+	}
+	ofPoint * getLeftElbow() {
+		return &elbow[0];
+	}
+	ofPoint * getRightElbow() {
+		return &elbow[1];
+	}
+	ofPoint * getLeftUpperTorso() {
+		return &leftUpperTorso;
+	}
+	ofPoint * getRightUpperTorso() {
+		return &rightUpperTorso;
+	}
 
-	ofPoint * getLeftHand();
-	ofPoint * getRightHand();
-
-	ofPoint * getLeftElbow();
-	ofPoint * getRightElbow();
-
-	ofPoint * getLeftUpperTorso();
-	ofPoint * getRightUpperTorso();
 protected:
-	ofPoint leftShoulder, rightShoulder;
+	int leftHandIdx;
+
+	ofPoint head;
+	ofPoint leftUpperTorso, rightUpperTorso;
 	ofPoint elbow[2];
-	ofPoint upperTorsoBB[2];
+	ofPoint upperTorsoFromBB[2];
+	ofPoint leftHand, rightHand;
 
-	ofPoint * getElbow(int idx);
 
+	void calcHead();
+
+	void locateLeftHand();
+	void locateRightHand();
+
+	void locateElbow(int idx);
+	void locateLeftElbow();
+	void locateRightElbow();
+
+	void locateLeftUpperTorso();
+	void locateRightUpperTorso();
 };
 
 #endif /* OFXSKELETON_H_ */

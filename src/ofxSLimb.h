@@ -38,6 +38,9 @@ public:
 	void join(ofPoint & jointP, ofPoint & newEndP, bool bInsertFront);
 
 	float getLengthSquared();
+	float getDirectLength(){
+		return getLimbStart()->distance(*getLimbEnd());
+	}
 
 	void draw(float x=0, float y=0);
 };

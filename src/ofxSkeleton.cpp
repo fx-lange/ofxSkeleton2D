@@ -8,15 +8,37 @@ void ofxSkeleton::reset(){
 	legs[1].clear();
 }
 
-ofPoint * ofxSkeleton::getLeftHand(){
-	return arms[leftHandIdx].getLimbEnd();
+void ofxSkeleton::calcHead(){
+	ofPoint * headTmp = neckToHead.getLimbEnd();
+	ofPoint * neckTmp = neckToHead.getLimbStart();
+	if(headTmp != NULL && neckTmp != NULL){
+		head = *neckTmp - *headTmp;
+		head *= gui->headNeckRatio;
+		head += *headTmp;
+	}else{
+		//TODO else
+	}
 }
 
-ofPoint * ofxSkeleton::getRightHand(){
-	return arms[1-leftHandIdx].getLimbEnd();
+void ofxSkeleton::locateLeftHand(){
+	ofPoint * p = arms[leftHandIdx].getLimbEnd();
+	if(p != NULL){
+		leftHand = *p;
+	}else{
+		//TODO
+	}
 }
 
-ofPoint * ofxSkeleton::getElbow(int index){
+void ofxSkeleton::locateRightHand(){
+	ofPoint * p = arms[1-leftHandIdx].getLimbEnd();
+	if(p != NULL){
+		rightHand = *p;
+	}else{
+		//TODO
+	}
+}
+
+void ofxSkeleton::locateElbow(int index){
 	int handIdx = index;
 	if(leftHandIdx == 1){
 		handIdx = 1 - handIdx;
@@ -25,10 +47,8 @@ ofPoint * ofxSkeleton::getElbow(int index){
 	int idx = -2;
 	ofPoint * joint = arms[handIdx].getJoint(idx);
 	if(joint != NULL){
-		//TODO if no elbow joint found - just hand and "shoulder"
-
 		float lowerArmDistance = joint->distance(*arms[handIdx].getJoint(-1));
-		float upperArmDistance = joint->distance(upperTorsoBB[index]);
+		float upperArmDistance = joint->distance(upperTorsoFromBB[index]);
 		float v = upperArmDistance / (lowerArmDistance + upperArmDistance);
 		float distance = lowerArmDistance;
 		bool bEnd = false;
@@ -41,7 +61,7 @@ ofPoint * ofxSkeleton::getElbow(int index){
 			joint = arms[handIdx].getJoint(idx);
 			if(joint != NULL){
 				distance = joint->distance(*last) + distance;
-				upperArmDistance = joint->distance(upperTorsoBB[index]);
+				upperArmDistance = joint->distance(upperTorsoFromBB[index]);
 				v = upperArmDistance / (distance + upperArmDistance);
 			}else{
 				bEnd = true;
@@ -50,48 +70,48 @@ ofPoint * ofxSkeleton::getElbow(int index){
 		}
 
 		if(bEnd){
-			elbow[index] = (gui->lowerUpperArmRatio / lastV) * (*last-upperTorsoBB[index]) + upperTorsoBB[index];
+			elbow[index] = (gui->lowerUpperArmRatio / lastV) * (*last-upperTorsoFromBB[index]) + upperTorsoFromBB[index];
 		}else{
 			elbow[index] = ( (gui->lowerUpperArmRatio - v) / (lastV - v) ) * (*last-*joint) + *joint;
 		}
 
-		return &elbow[index];
+	}else{
+		//TODO
 	}
-	return NULL;
 }
 
-ofPoint * ofxSkeleton::getLeftElbow(){
-	return getElbow(0);
+void ofxSkeleton::locateLeftElbow(){
+	locateElbow(0);
 }
 
-ofPoint * ofxSkeleton::getRightElbow(){
-	return getElbow(1);
+void ofxSkeleton::locateRightElbow(){
+	locateElbow(1);
 }
 
-ofPoint * ofxSkeleton::getLeftUpperTorso(){
+void ofxSkeleton::locateLeftUpperTorso(){
 	ofPoint * elbow = getLeftElbow();
 	if(elbow != NULL){
-		ofPoint leftUpperArm = *elbow - upperTorsoBB[0];
-		leftShoulder = leftUpperArm * gui->torsoElbowRatio + upperTorsoBB[0];
-		return &leftShoulder;
+		ofPoint leftUpperArm = *elbow - upperTorsoFromBB[0];
+		leftUpperTorso = leftUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[0];
+	}else{
+		//TODO
 	}
-	return NULL;
 }
 
-ofPoint * ofxSkeleton::getRightUpperTorso(){
+void ofxSkeleton::locateRightUpperTorso(){
 	ofPoint * elbow = getRightElbow();
 	if(elbow != NULL){
-		ofPoint rightUpperArm = *elbow - upperTorsoBB[1];
-		rightShoulder = rightUpperArm * gui->torsoElbowRatio + upperTorsoBB[1];
-		return &rightShoulder;
+		ofPoint rightUpperArm = *elbow - upperTorsoFromBB[1];
+		rightUpperTorso = rightUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[1];
+	}else{
+		//TODO
 	}
-	return NULL;
 }
 
 void ofxSkeleton::update(){
 
-	upperTorsoBB[0].set(torsoBB.x,torsoBB.y);
-	upperTorsoBB[1].set(torsoBB.x+torsoBB.width,torsoBB.y);
+	upperTorsoFromBB[0].set(torsoBB.x,torsoBB.y);
+	upperTorsoFromBB[1].set(torsoBB.x+torsoBB.width,torsoBB.y);
 
 	leftHandIdx = 0;
 	if(arms[0].getLimbEnd() != NULL && arms[1].getLimbEnd() != NULL){
@@ -99,40 +119,40 @@ void ofxSkeleton::update(){
 			leftHandIdx = 1;
 		}
 	}else if(arms[0].getLimbEnd() != NULL){
-		if(arms[0].getLimbEnd()->x > upperTorsoBB[1].x){
+		if(arms[0].getLimbEnd()->x > upperTorsoFromBB[1].x){
 			leftHandIdx = 1;
 		}
 	}else if(arms[1].getLimbEnd() != NULL){
-		if(arms[1].getLimbEnd()->x < upperTorsoBB[0].x ){
+		if(arms[1].getLimbEnd()->x < upperTorsoFromBB[0].x ){
 			leftHandIdx = 1;
 		}
 	}
+
+	calcHead();
+	locateLeftHand();
+	locateRightHand();
+	locateLeftElbow();
+	locateRightElbow();
+	locateLeftUpperTorso();
+	locateRightUpperTorso();
 }
 
 void ofxSkeleton::draw(){
 	ofSetColor(255,0,0,200);
-	if(neckToHead.bFound ){
-		ofEllipse(*getHead(),25,25);
+	if( foundHead() ){
+		ofEllipse(head,25,25);
 		ofEllipse(*getNeck(),15,15);
 	}
 	ofSetColor(0,0,255,200);
-	if( arms[leftHandIdx].bFound ){
-//		ofEllipse(arms[0].getLimbStart()->x,arms[0].getLimbStart()->y,15,15);
-		ofEllipse(*getLeftHand(),25,25);
-		ofLine(getLeftElbow()->x,getLeftElbow()->y,torsoBB.x,torsoBB.y);
-		ofPoint * shoulder = getLeftUpperTorso();
-		if(shoulder != NULL){
-			ofEllipse(*shoulder,15,15);
-		}
+	if( foundLeftArm() ){
+		ofEllipse(leftHand,25,25);
+		ofEllipse(elbow[0],20,20);
+		ofEllipse(leftUpperTorso,15,15);
 	}
-	if( arms[1-leftHandIdx].bFound ){
-//		ofEllipse(arms[1].getLimbStart()->x,arms[1].getLimbStart()->y,15,15);
-		ofEllipse(*getRightHand(),25,25);
-		ofLine(getRightElbow()->x,getRightElbow()->y,torsoBB.x+torsoBB.width,torsoBB.y);
-		ofPoint * shoulder = getRightUpperTorso();
-		if(shoulder != NULL){
-			ofEllipse(*shoulder,15,15);
-		}
+	if( foundRightArm() ){
+		ofEllipse(rightHand,25,25);
+		ofEllipse(elbow[1],20,20);
+		ofEllipse(rightUpperTorso,15,15);
 	}
 
 	ofSetColor(0,255,0,200);

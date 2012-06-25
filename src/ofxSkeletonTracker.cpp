@@ -332,6 +332,8 @@ void ofxSkeletonTracker2D::torsoPCA(){
 	torsoHigh = center - primTorsoDirection * length;
 	length = abs(bbTorso.y + (bbTorso.height * (1 - 0.125f)) - center.y);
 	torsoLow = center + primTorsoDirection * length;
+
+	skeleton.torsoCenter = center;
 }
 
 vector<ofxSFP*> ofxSkeletonTracker2D::findInit(ofxSFP * active, int manhattenRadius) {

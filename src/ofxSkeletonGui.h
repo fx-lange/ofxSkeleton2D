@@ -56,6 +56,9 @@ public:
 	ofxFloatSlider minLimbLengthSum;
 	ofxFloatSlider torsoElbowRatio;
 	ofxFloatSlider lowerUpperArmRatio;
+	ofxFloatSlider headNeckRatio;
+
+	//PostProcessing
 
 	ofxSkeletonGui(){
 		panel.setup("ofxSkeleton2D","skeletonGui.xml");
@@ -104,6 +107,7 @@ public:
 		poseEstimationPanel.add(maxAngleHead.setup("max angle head",30,1,90));
 		poseEstimationPanel.add(torsoElbowRatio.setup("torso elbow ratio",0.2,0,1));
 		poseEstimationPanel.add(lowerUpperArmRatio.setup("low upper ratio",0.5,0,1));
+		poseEstimationPanel.add(headNeckRatio.setup("head neck ratio",0.2,0,1));
 		panel.add(&poseEstimationPanel);
 	}
 };
