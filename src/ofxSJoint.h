@@ -1,10 +1,3 @@
-/*
- * ofxSJoint.h
- *
- *  Created on: Jun 21, 2012
- *      Author: spta32
- */
-
 #ifndef OFXSJOINT_H_
 #define OFXSJOINT_H_
 
@@ -17,7 +10,7 @@ public:
 	bool bFound;
 
 	ofxSJoint(){
-		idx = 0;
+		pointsAdded = idx = 0;
 		bFound = false;
 		N = JOINT_BUFFER_SIZE;
 	}
@@ -34,6 +27,10 @@ public:
 
 	ofxSJoint& operator=(const ofPoint& p)
 	{
+	  if(pointsAdded > 30 && getBufferedPosition()->distance(p)>75.f){ //TODO gui!
+		  bFound = false;
+		  return *this;
+	  }
 	  bFound = true;
 	  x = p.x;
 	  y = p.y;
@@ -46,6 +43,7 @@ public:
 	  }
 
 	  idx = (idx + 1) % N;
+	  ++pointsAdded;
 
 	  return *this;
 	}
@@ -63,6 +61,7 @@ protected:
 	vector<ofPoint> positionBuffer;
 	int idx;
 	int N; //TODO should be changeable
+	int pointsAdded;
 
 	ofPoint bufferedPosition;
 };
