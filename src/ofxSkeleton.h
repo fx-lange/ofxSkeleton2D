@@ -7,9 +7,9 @@
 #include "ofxSkeletonGui.h"
 
 class ofxSkeleton {
-	//TODO calc average head size
+	//TODO ignore errors ?!
 	//TODO use average head size to improve pose estimation
-	//TODO use buffer for positions
+	//TODO head position is not completely buffered (cause of neck) - and his size too
 	//REVISIT improve inner joings by using original SFPLine Points instead of joints?!
 
 public:
@@ -43,6 +43,9 @@ public:
 	ofPoint * getHead() {
 		return head.getBufferedPosition();
 	}
+	float getHeadSize(){
+		return head.getBufferedPosition()->distance(*neck.getBufferedPosition()) * 2.f;
+	}
 	ofPoint * getNeck() {
 		return neckToHead.getLimbStart(); //TODO not buffered
 	}
@@ -68,7 +71,8 @@ public:
 protected:
 	int leftHandIdx;
 
-	ofxSJoint head;
+	ofxSJoint head, neck;
+
 	ofxSJoint leftUpperTorso, rightUpperTorso;
 	ofxSJoint elbow[2];
 	ofxSJoint leftHand, rightHand;

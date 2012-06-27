@@ -13,8 +13,10 @@ void ofxSkeleton::calcHead(){
 	ofPoint * neckTmp = neckToHead.getLimbStart();
 	if(headTmp != NULL && neckTmp != NULL){
 		head = ((*neckTmp - *headTmp) * gui->headNeckRatio) + *headTmp;
+		neck = *neckTmp;
 	}else{
 		head.bFound = false;
+		neck.bFound = false;
 	}
 }
 
