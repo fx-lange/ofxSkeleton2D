@@ -48,6 +48,7 @@ public:
 	void drawDebugLimbs(float x = 0, float y = 0);
 	void drawDebugSkeleton(float x = 0, float y = 0);
 
+	ofPolyline simpleContour;
 protected:
 	ofxSkeletonGui gui;
 	float width, height;
@@ -56,7 +57,6 @@ protected:
 
 	ofxCvGrayscaleImage binary;
 	ofxCvContourFinder contourFinder;
-	ofPolyline simpleContour;
 
 	ofxVoronoiGL voronoi;
 	ofShader sfpShader;

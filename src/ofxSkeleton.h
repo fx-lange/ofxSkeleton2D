@@ -24,7 +24,9 @@ public:
 	ofxSkeleton() {
 	}
 
-	void reset();
+	void resetFrame();
+	void clear();
+
 	void update();
 	void draw();
 

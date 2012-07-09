@@ -10,9 +10,7 @@ public:
 	bool bFound;
 
 	ofxSJoint(){
-		pointsAdded = idx = 0;
-		bFound = false;
-		N = JOINT_BUFFER_SIZE;
+		clear();
 	}
 
 	ofxSJoint(const ofPoint & p){
@@ -25,9 +23,16 @@ public:
 		bFound = true;
 	}
 
+	void clear(){
+		pointsAdded = idx = 0;
+		bFound = false;
+		N = JOINT_BUFFER_SIZE;
+		positionBuffer.clear();
+	}
+
 	ofxSJoint& operator=(const ofPoint& p)
 	{
-	  if(pointsAdded > 30 && getBufferedPosition()->distance(p)>75.f){ //TODO gui!
+	  if(pointsAdded > 30 && getBufferedPosition()->distance(p)>150.f){ //TODO gui!
 		  bFound = false;
 		  return *this;
 	  }

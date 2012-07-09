@@ -1,11 +1,22 @@
 #include "ofxSkeleton.h"
 
-void ofxSkeleton::reset(){
+void ofxSkeleton::resetFrame(){
 	neckToHead.clear();
 	arms[0].clear();
 	arms[1].clear();
 	legs[0].clear();
 	legs[1].clear();
+}
+
+void ofxSkeleton::clear(){
+	head.clear();
+	neck.clear();
+	leftUpperTorso.clear();
+	rightUpperTorso.clear();
+	elbow[0].clear();
+	elbow[1].clear();
+	leftHand.clear();
+	rightHand.clear();
 }
 
 void ofxSkeleton::calcHead(){

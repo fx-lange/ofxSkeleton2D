@@ -782,7 +782,7 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 	}
 
 	int nextIdx = 0;
-	skeleton.reset();
+	skeleton.resetFrame();
 	if (minAngleLimbs[nextIdx] != NULL) {
 
 		if(minAngles[nextIdx] <= gui.maxAngleHead){
