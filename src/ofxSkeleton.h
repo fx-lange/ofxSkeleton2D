@@ -16,7 +16,7 @@ public:
 	//TODO should be protected - possible misuse
 	ofxSLimb neckToHead, arms[2], legs[2];
 
-	ofRectangle torsoBB;
+	ofPoint upperTorsoFromPCA[2];
 	ofPoint torsoCenter;
 
 	ofxSkeletonGui * gui;
@@ -79,7 +79,6 @@ protected:
 	ofxSJoint elbow[2];
 	ofxSJoint leftHand, rightHand;
 
-	ofPoint upperTorsoFromBB[2];
 
 
 	void calcHead();

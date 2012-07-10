@@ -59,7 +59,7 @@ void ofxSkeleton::locateElbow(int index){
 	ofPoint * joint = arms[handIdx].getJoint(idx);
 	if(joint != NULL){
 		float lowerArmDistance = joint->distance(*arms[handIdx].getJoint(-1));
-		float upperArmDistance = joint->distance(upperTorsoFromBB[index]);
+		float upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
 		float v = upperArmDistance / (lowerArmDistance + upperArmDistance);
 		float distance = lowerArmDistance;
 		bool bEnd = false;
@@ -72,7 +72,7 @@ void ofxSkeleton::locateElbow(int index){
 			joint = arms[handIdx].getJoint(idx);
 			if(joint != NULL){
 				distance = joint->distance(*last) + distance;
-				upperArmDistance = joint->distance(upperTorsoFromBB[index]);
+				upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
 				v = upperArmDistance / (distance + upperArmDistance);
 			}else{
 				bEnd = true;
@@ -81,7 +81,7 @@ void ofxSkeleton::locateElbow(int index){
 		}
 
 		if(bEnd){
-			elbow[index] = (gui->lowerUpperArmRatio / lastV) * (*last-upperTorsoFromBB[index]) + upperTorsoFromBB[index];
+			elbow[index] = (gui->lowerUpperArmRatio / lastV) * (*last-upperTorsoFromPCA[index]) + upperTorsoFromPCA[index];
 		}else{
 			elbow[index] = ( (gui->lowerUpperArmRatio - v) / (lastV - v) ) * (*last-*joint) + *joint;
 		}
@@ -100,21 +100,18 @@ void ofxSkeleton::locateRightElbow(){
 }
 
 void ofxSkeleton::locateLeftUpperTorso(){
-	ofPoint leftUpperArm = elbow[0] - upperTorsoFromBB[0];
-	leftUpperTorso = leftUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[0];
+	ofPoint leftUpperArm = elbow[0] - upperTorsoFromPCA[0];
+	leftUpperTorso = leftUpperArm * gui->torsoElbowRatio + upperTorsoFromPCA[0];
 	leftUpperTorso.bFound = elbow[0].bFound;
 }
 
 void ofxSkeleton::locateRightUpperTorso(){
-	ofPoint rightUpperArm = elbow[1] - upperTorsoFromBB[1];
-	rightUpperTorso = rightUpperArm * gui->torsoElbowRatio + upperTorsoFromBB[1];
+	ofPoint rightUpperArm = elbow[1] - upperTorsoFromPCA[1];
+	rightUpperTorso = rightUpperArm * gui->torsoElbowRatio + upperTorsoFromPCA[1];
 	rightUpperTorso.bFound = elbow[1].bFound;
 }
 
 void ofxSkeleton::update(){
-
-	upperTorsoFromBB[0].set(torsoBB.x,torsoBB.y);
-	upperTorsoFromBB[1].set(torsoBB.x+torsoBB.width,torsoBB.y);
 
 	leftHandIdx = 0;
 	if(arms[0].getLimbEnd() != NULL && arms[1].getLimbEnd() != NULL){
@@ -122,11 +119,11 @@ void ofxSkeleton::update(){
 			leftHandIdx = 1;
 		}
 	}else if(arms[0].getLimbEnd() != NULL){
-		if(arms[0].getLimbEnd()->x > upperTorsoFromBB[1].x){
+		if(arms[0].getLimbEnd()->x > upperTorsoFromPCA[1].x){
 			leftHandIdx = 1;
 		}
 	}else if(arms[1].getLimbEnd() != NULL){
-		if(arms[1].getLimbEnd()->x < upperTorsoFromBB[0].x ){
+		if(arms[1].getLimbEnd()->x < upperTorsoFromPCA[0].x ){
 			leftHandIdx = 1;
 		}
 	}

@@ -75,7 +75,7 @@ protected:
 	vector<ofPoint> torso;
 	ofPoint center;
 	ofVec2f primTorsoDirection;
-	ofRectangle bbTorso;
+	ofVec2f sndTorsoDirection;
 	ofPoint torsoHigh;
 	ofPoint torsoLow;
 	cv::Mat xss, yss; //TODO naming!!!

@@ -169,11 +169,7 @@ void ofxSkeletonTracker2D::drawDebugTorso(float x,float y){
 	ofSetColor(255, 255, 255);
 	ofEllipse(center, 5, 5);
 	ofLine(torsoHigh.x, torsoHigh.y, torsoLow.x, torsoLow.y);
-
-	//Torso BB
-	ofSetColor(255, 255, 255, 180);
-	ofNoFill();
-	ofRect(bbTorso);
+	ofLine(skeleton.upperTorsoFromPCA[0],skeleton.upperTorsoFromPCA[1]);
 
 	ofPopStyle();
 	ofPopMatrix();
@@ -256,10 +252,6 @@ void ofxSkeletonTracker2D::createSFPGrid(GLubyte * pboPtr){
 	xss.release();
 	yss.release();
 
-	ofPoint bb1, bb2;
-	bb1.set(640, 480, 0);
-	bb2.set(0, 0, 0);
-
 	//in doppelter Schleife Ergebnissbild vom LocalMax-Shader durchgehen
 	//dabei SFP Grid Datenstruktur aufbauen und Torso Punkte bestimmen (und Torso-BoundingBox [performant O(width+2)] )
 	//über den Rot-Kanal werden SFP makiert - im Grünkanal die Tiefe = maximaler Abstand zur Kontour
@@ -292,22 +284,6 @@ void ofxSkeletonTracker2D::createSFPGrid(GLubyte * pboPtr){
 				}
 			}
 		}
-		//calc ymin and ymax of boundingbox
-		if (yss.rows > checkPos) {
-			float y = yss.at<float>(checkPos);
-			bb1.y = y < bb1.y ? y : bb1.y;
-			y = yss.at<float>(yss.rows - 1);
-			bb2.y = y > bb2.y ? y : bb2.y;
-			checkPos = yss.rows;
-		}
-	}
-	//calc xmin and xmax of boundingbox
-	if (xss.rows > 0) {
-		bb1.x = xss.at<float>(0);
-		bb2.x = xss.at<float>(xss.rows - 1);
-		bbTorso.set(bb1, bb2.x - bb1.x, bb2.y - bb1.y);
-
-		skeleton.torsoBB = bbTorso;
 	}
 
 	glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
@@ -330,11 +306,14 @@ void ofxSkeletonTracker2D::torsoPCA(){
 		cout << "EVector: " << pca.eigenvectors << endl;
 		cout << "EValvues: " << pca.eigenvalues << endl;
 		primTorsoDirection.set(pca.eigenvectors.at<float>(0, 0), pca.eigenvectors.at<float>(0, 1));
-	//	float length = abs(bbTorso.y + (bbTorso.height * 0.125f) - center.y); //OLD
-		float length = sqrt(pca.eigenvalues.at<float>(0)) * gui.scaleLambda1;
-		torsoHigh = center - primTorsoDirection * length;
-//		length = abs(bbTorso.y + (bbTorso.height * (1 - 0.125f)) - center.y);
-		torsoLow = center + primTorsoDirection * length;
+		float primLength = sqrt(pca.eigenvalues.at<float>(0)) * gui.scaleLambda1;
+		torsoHigh = center - primTorsoDirection * primLength;
+		torsoLow = center + primTorsoDirection * primLength;
+
+		sndTorsoDirection.set(pca.eigenvectors.at<float>(1, 0), pca.eigenvectors.at<float>(1, 1));
+		float sndLength = sqrt(pca.eigenvalues.at<float>(1)) * gui.scaleLambda2;
+		skeleton.upperTorsoFromPCA[0] = torsoHigh - sndTorsoDirection * sndLength;
+		skeleton.upperTorsoFromPCA[1] = torsoHigh + sndTorsoDirection * sndLength;
 	}
 
 
@@ -407,11 +386,9 @@ ofxSFP * ofxSkeletonTracker2D::findNext(ofxSFP * active, int manhattenRadius) {
  * Das gewünschte habe ich wohl schon in findNext umgesetzt - welches wird denn benutzt? findBest!
  */
 ofxSFP * ofxSkeletonTracker2D::findBest(ofxSFP * last, ofxSFP * active, int manhattenRadius) {
-	int minDiff = manhattenRadius * 2;
 	ofxSFP * next = NULL;
 	vector<ofxSFP*> beatenNeighbors;
 	for (int x = max((int) active->x - manhattenRadius, 0); x <= min(active->x + manhattenRadius, width - 1); ++x) {
-		int xDiff = x - active->x;
 		for (unsigned int j = 0; j < linePixels[x].size(); ++j) {
 			ofxSFP & nextTry = linePixels[x][j];
 			if (gui.bExcludeTorso && nextTry.isTorsoPoint) {
@@ -797,11 +774,11 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 
 		//arms
 //		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
-		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < bbTorso.y + bbTorso.height) {
+		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < torsoLow.y) {
 			skeleton.arms[0].copy(minAngleLimbs[nextIdx]);
 			++nextIdx;
 //			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
-			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < bbTorso.y + bbTorso.height) {
+			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < torsoLow.y) {
 				skeleton.arms[1].copy(minAngleLimbs[nextIdx]);
 				++nextIdx;
 			}
