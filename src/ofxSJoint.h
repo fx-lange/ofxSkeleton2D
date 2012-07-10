@@ -3,7 +3,7 @@
 
 #include "ofMain.h"
 
-#define JOINT_BUFFER_SIZE 3
+#define JOINT_BUFFER_SIZE 1
 
 class ofxSJoint : public ofPoint{
 public:
@@ -32,7 +32,7 @@ public:
 
 	ofxSJoint& operator=(const ofPoint& p)
 	{
-	  if(pointsAdded > 30 && getBufferedPosition()->distance(p)>150.f){ //TODO gui!
+	  if(pointsAdded > 30 && getBufferedPosition()->distance(p)>15000.f){ //TODO gui!
 		  bFound = false;
 		  return *this;
 	  }

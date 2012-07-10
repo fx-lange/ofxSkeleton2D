@@ -47,6 +47,8 @@ public:
 	ofxPanel torsoPanel;
 	ofxToggle bExcludeTorso;
 	ofxFloatSlider torsoThreshold;
+	ofxFloatSlider scaleLambda1;
+	ofxFloatSlider scaleLambda2;
 
 	//Pose Estimation
 	ofxPanel poseEstimationPanel;
@@ -98,6 +100,8 @@ public:
 //		torsoPanel.setSize(270,imagePanel.getHeight());
 		torsoPanel.add(bExcludeTorso.setup("exclude torso",true));
 		torsoPanel.add(torsoThreshold.setup("torso threshold",0.7,0,1));
+		torsoPanel.add(scaleLambda1.setup("scale lambda1",1,1,3));
+		torsoPanel.add(scaleLambda2.setup("scale lambda2",1,1,3));
 		panel.add(&torsoPanel);
 
 		poseEstimationPanel.setup("pose estimation");

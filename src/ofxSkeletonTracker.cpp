@@ -58,6 +58,10 @@ ofxPanel * ofxSkeletonTracker2D::getShaderPanel(){
 ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background) {
 	binary.absDiff(background, grayInput);
 	binary.threshold(gui.threshold);
+	binary.dilate();
+	binary.dilate();
+	binary.erode();
+	binary.erode();
 	return calcSfpAsFbo(binary);
 }
 
@@ -323,15 +327,16 @@ void ofxSkeletonTracker2D::torsoPCA(){
 	/** Torso PCA */
 	if (torso.size() > 0) {
 		cv::PCA pca = cv::PCA(coords, cv::Mat(), CV_PCA_DATA_AS_COL, 2);
-//		cout << "EVector: " << pca.eigenvectors << endl;
-//		cout << "EValvues: " << pca.eigenvalues << endl;
+		cout << "EVector: " << pca.eigenvectors << endl;
+		cout << "EValvues: " << pca.eigenvalues << endl;
 		primTorsoDirection.set(pca.eigenvectors.at<float>(0, 0), pca.eigenvectors.at<float>(0, 1));
+	//	float length = abs(bbTorso.y + (bbTorso.height * 0.125f) - center.y); //OLD
+		float length = sqrt(pca.eigenvalues.at<float>(0)) * gui.scaleLambda1;
+		torsoHigh = center - primTorsoDirection * length;
+//		length = abs(bbTorso.y + (bbTorso.height * (1 - 0.125f)) - center.y);
+		torsoLow = center + primTorsoDirection * length;
 	}
 
-	float length = abs(bbTorso.y + (bbTorso.height * 0.125f) - center.y);
-	torsoHigh = center - primTorsoDirection * length;
-	length = abs(bbTorso.y + (bbTorso.height * (1 - 0.125f)) - center.y);
-	torsoLow = center + primTorsoDirection * length;
 
 	skeleton.torsoCenter = center;
 }
