@@ -7,6 +7,20 @@
 
 #include "ofxSkeleton2D.h"
 
+int isLeftOf(ofPoint * p1,ofPoint * p2, ofPoint * o){
+		float detA = p1->x * p2->y + o->x * p1->y + p2->x * o->y
+				- p1->x * o->y - p2->x * p1->y - o->x*p2->y;
+
+		if(detA > 0){
+			return -1;
+		}else if(detA < 0){
+			return 1;
+		}else{
+			return 0;
+		}
+}
+
+
 void ofxSkeletonTracker2D::setup(float _width, float _height) {
 	width = _width;
 	height = _height;
@@ -140,7 +154,7 @@ void ofxSkeletonTracker2D::calcSkeleton(){
 	}
 
 	createLimbs();
-	searchHeadAndArms();
+	locateLimbs();
 }
 
 void ofxSkeletonTracker2D::drawBinary(float x, float y){
@@ -303,8 +317,8 @@ void ofxSkeletonTracker2D::torsoPCA(){
 	/** Torso PCA */
 	if (torso.size() > 0) {
 		cv::PCA pca = cv::PCA(coords, cv::Mat(), CV_PCA_DATA_AS_COL, 2);
-		cout << "EVector: " << pca.eigenvectors << endl;
-		cout << "EValvues: " << pca.eigenvalues << endl;
+//		cout << "EVector: " << pca.eigenvectors << endl;
+//		cout << "EValvues: " << pca.eigenvalues << endl;
 		primTorsoDirection.set(pca.eigenvectors.at<float>(0, 0), pca.eigenvectors.at<float>(0, 1));
 		float primLength = sqrt(pca.eigenvalues.at<float>(0)) * gui.scaleLambda1;
 		torsoHigh = center - primTorsoDirection * primLength;
@@ -675,7 +689,7 @@ void ofxSkeletonTracker2D::createLimbs() {
 	}
 }
 
-void ofxSkeletonTracker2D::searchHeadAndArms() {
+void ofxSkeletonTracker2D::locateLimbs() {
 	//TODO wirkt sehr aufwenig um die 3 nächsten zu suchen.
 
 	vector<ofxSLimb*> nearest;
@@ -781,6 +795,19 @@ void ofxSkeletonTracker2D::searchHeadAndArms() {
 			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < torsoLow.y) {
 				skeleton.arms[1].copy(minAngleLimbs[nextIdx]);
 				++nextIdx;
+			}
+		}
+
+		if(nextIdx >= 3){//check if head is between shoulders ...
+//			if(skeleton.neckToHead.isLeftOf(skeleton.arms[0]) == skeleton.neckToHead.isLeftOf(skeleton.arms[1])){
+//				cout << "HEAD IS NOT BETWEEN SHOULDERS!" << endl;
+//			}
+			if(isLeftOf(&center,skeleton.neckToHead.getLimbStart(),skeleton.arms[0].getLimbStart()) == isLeftOf(&center,skeleton.neckToHead.getLimbStart(),skeleton.arms[1].getLimbStart())){
+				cout << "HEAD IS NOT BETWEEN SHOULDERS!" << endl;
+				ofxSLimb tmp;
+				tmp.copy(&skeleton.neckToHead);
+				skeleton.neckToHead.copy(&skeleton.arms[0]);
+				skeleton.arms[0].copy(&tmp);
 			}
 		}
 

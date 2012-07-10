@@ -13,6 +13,7 @@ ofxSLimb::ofxSLimb(ofPoint & p1, ofPoint & p2){
 void ofxSLimb::copy(ofxSLimb * other){
 	bReverseOrder = other->bReverseOrder;
 	color = other->color;
+	joints.clear();
 	joints.insert(joints.begin(),other->joints.begin(),other->joints.end());
 	bFound = true;
 }
