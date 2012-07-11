@@ -78,7 +78,7 @@ public:
 
 		linePanel.setup("line construction");
 //		linePanel.setSize(270,imagePanel.getHeight());
-		linePanel.add(maxAngle.setup("max angle",15,0,90));
+		linePanel.add(maxAngle.setup("max angle",15,0,180));
 		linePanel.add(minCountPixelsPerLine.setup("min pixels per line",5,1,30));
 		linePanel.add(manhattenRadius.setup("max line point dist",5,1,30));
 		linePanel.add(bEasyStartAngle.setup("easy start",false));
@@ -93,7 +93,7 @@ public:
 //		mergePanel.setSize(270,imagePanel.getHeight());
 		mergePanel.add(bMergeLines.setup("merge them",false));
 		mergePanel.add(maxMergeDistance.setup("max merge distance",10,1,50));
-		mergePanel.add(maxMergeAngle.setup("max merge angle",10,1,50));
+		mergePanel.add(maxMergeAngle.setup("max merge angle",10,1,180));
 		panel.add(&mergePanel);
 
 		torsoPanel.setup("torso");

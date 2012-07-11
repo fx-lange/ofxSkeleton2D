@@ -401,6 +401,7 @@ ofxSFP * ofxSkeletonTracker2D::findNext(ofxSFP * active, int manhattenRadius) {
  */
 ofxSFP * ofxSkeletonTracker2D::findBest(ofxSFP * last, ofxSFP * active, int manhattenRadius) {
 	ofxSFP * next = NULL;
+	int maxDist = 0;
 	vector<ofxSFP*> beatenNeighbors;
 	for (int x = max((int) active->x - manhattenRadius, 0); x <= min(active->x + manhattenRadius, width - 1); ++x) {
 		for (unsigned int j = 0; j < linePixels[x].size(); ++j) {
@@ -408,6 +409,7 @@ ofxSFP * ofxSkeletonTracker2D::findBest(ofxSFP * last, ofxSFP * active, int manh
 			if (gui.bExcludeTorso && nextTry.isTorsoPoint) {
 				continue;
 			}
+			int xDiff = nextTry.x - active->x;
 			int yDiff = nextTry.y - active->y;
 			if (yDiff < -manhattenRadius || nextTry.used) {
 				continue; //REVISIT läuft schritt für schritt in neuen bereich - könnte auch binär gesucht werden
@@ -415,12 +417,15 @@ ofxSFP * ofxSkeletonTracker2D::findBest(ofxSFP * last, ofxSFP * active, int manh
 				break;
 			} else {
 //				if (max(abs(xDiff), abs(yDiff)) < manhattenRadius) {//REVISIT checked twice
-				if(next!=NULL)
-					beatenNeighbors.push_back(next);
-				next = &nextTry;
-//				}else{
-//					beatenNeighbors.push_back(&nextTry);
-//				}
+				int dist = max(abs(xDiff),abs(yDiff));
+				if(dist >= maxDist){
+					if(next!=NULL)
+						beatenNeighbors.push_back(next);
+					next = &nextTry;
+					maxDist = dist;
+				}else{
+					beatenNeighbors.push_back(&nextTry);
+				}
 				nextTry.used = true;
 			}
 		}
@@ -548,7 +553,7 @@ void ofxSkeletonTracker2D::findLines() {
 					}
 					//Abbruch wenn kein neuer Nachbar gefunden wird oder Chancen verbraucht sind
 					//Linie wird nur übernommen wenn sie lang genug ist
-					if (sfpLine.pixels.size() > gui.minCountPixelsPerLine) {
+					if (sfpLine.pixels.size() >= gui.minCountPixelsPerLine) {
 						lines.push_back(sfpLine);
 						bFound = true;
 					} else {
