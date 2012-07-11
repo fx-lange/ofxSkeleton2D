@@ -757,7 +757,7 @@ void ofxSkeletonTracker2D::locateLimbs() {
 	// a) is better than b)
 
 	//sort SLimbs after their smallest angle to the primary component of the torso
-	ofVec2f v2 = torsoHigh - torsoLow;
+	ofVec2f v2 = center - torsoLow; //use center instead of torsoHigh - same angle but no bug if torso high is higher than neck
 	float maxAngle = 150.f;
 	float squaredMinLimbLength = gui.minLimbLengthSum * gui.minLimbLengthSum;
 	for (int i = 0; i < limbs.size(); ++i) {
@@ -766,7 +766,7 @@ void ofxSkeletonTracker2D::locateLimbs() {
 			continue;
 		}
 		ofPoint * sJoint = limb->getLimbStart();
-		ofVec2f v1 = *sJoint - torsoHigh;
+		ofVec2f v1 = *sJoint - center;
 		float tmpAngle = abs(v1.angle(v2));
 		limb->startAngle = tmpAngle;
 		for (int j = 0; j < 5; ++j) {
