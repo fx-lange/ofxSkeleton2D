@@ -55,41 +55,33 @@ void ofxSkeleton::locateElbow(int index){
 		handIdx = 1 - handIdx;
 	}
 
-	int idx = -2;
-	ofPoint * joint = arms[handIdx].getJoint(idx);
-	if(joint != NULL){
-		float lowerArmDistance = joint->distance(*arms[handIdx].getJoint(-1));
-		float upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
+	if(arms[handIdx].line != NULL){
+		int idx = 0;
+		ofPoint * p = arms[handIdx].getLinePoint(idx);
+		ofPoint * end = arms[handIdx].getLinePoint(-1);
+		float lowerArmDistance = p->distance(*end);
+		float upperArmDistance = p->distance(upperTorsoFromPCA[index]);
 		float v = upperArmDistance / (lowerArmDistance + upperArmDistance);
-		float distance = lowerArmDistance;
-		bool bEnd = false;
-		ofPoint * last = arms[handIdx].getJoint(-1);
-		float lastV = 1;
-		while(v > gui->lowerUpperArmRatio){
-			last = joint;
+		ofPoint * last = &upperTorsoFromPCA[index];
+		float lastV = 0;
+		while(v < gui->lowerUpperArmRatio){
+			last = p;
 			lastV = v;
-			--idx;
-			joint = arms[handIdx].getJoint(idx);
-			if(joint != NULL){
-				distance = joint->distance(*last) + distance;
-				upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
-				v = upperArmDistance / (distance + upperArmDistance);
-			}else{
-				bEnd = true;
-				break;
-			}
+			++idx;
+			p = arms[handIdx].getLinePoint(idx);
+			upperArmDistance = p->distance(upperTorsoFromPCA[index]);
+			lowerArmDistance = p->distance(*end);
+			v = upperArmDistance / (lowerArmDistance + upperArmDistance);
 		}
 
-		if(bEnd){
-			elbow[index] = (gui->lowerUpperArmRatio / lastV) * (*last-upperTorsoFromPCA[index]) + upperTorsoFromPCA[index];
-		}else{
-			elbow[index] = ( (gui->lowerUpperArmRatio - v) / (lastV - v) ) * (*last-*joint) + *joint;
-		}
+		elbow[index] = ( (gui->lowerUpperArmRatio - lastV) / (v - lastV) ) * (*p-*last) + *last;
 
 	}else{
 		elbow[index].bFound = false;
 	}
 }
+
+
 
 void ofxSkeleton::locateLeftElbow(){
 	locateElbow(0);
@@ -161,5 +153,48 @@ void ofxSkeleton::draw(){
 	}
 	if( legs[1].bFound ){
 		ofEllipse(legs[1].getLimbStart()->x,legs[1].getLimbStart()->y,15,15);
+	}
+}
+
+
+void ofxSkeleton::locateElbowOld(int index){
+	int handIdx = index;
+	if(leftHandIdx == 1){
+		handIdx = 1 - handIdx;
+	}
+
+	int idx = -2;
+	ofPoint * joint = arms[handIdx].getJoint(idx);
+	if(joint != NULL){
+		float lowerArmDistance = joint->distance(*arms[handIdx].getJoint(-1));
+		float upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
+		float v = upperArmDistance / (lowerArmDistance + upperArmDistance);
+		float distance = lowerArmDistance;
+		bool bEnd = false;
+		ofPoint * last = arms[handIdx].getJoint(-1);
+		float lastV = 1;
+		while(v > gui->lowerUpperArmRatio){
+			last = joint;
+			lastV = v;
+			--idx;
+			joint = arms[handIdx].getJoint(idx);
+			if(joint != NULL){
+				distance = joint->distance(*last) + distance;
+				upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
+				v = upperArmDistance / (distance + upperArmDistance);
+			}else{
+				bEnd = true;
+				break;
+			}
+		}
+
+		if(bEnd){
+			elbow[index] = (gui->lowerUpperArmRatio / lastV) * (*last-upperTorsoFromPCA[index]) + upperTorsoFromPCA[index];
+		}else{
+			elbow[index] = ( (gui->lowerUpperArmRatio - v) / (lastV - v) ) * (*last-*joint) + *joint;
+		}
+
+	}else{
+		elbow[index].bFound = false;
 	}
 }

@@ -86,6 +86,7 @@ protected:
 	void locateLeftHand();
 	void locateRightHand();
 
+	void locateElbowOld(int idx);
 	void locateElbow(int idx);
 	void locateLeftElbow();
 	void locateRightElbow();

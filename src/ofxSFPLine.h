@@ -10,17 +10,14 @@
 
 #include "ofMain.h"
 #include "ofxSFP.h"
-#include "ofxSLimb.h"
 
 class ofxSFPLine{
 public:
 	ofxSFPLine(){
 		bMerged = false;
-		limb = NULL;
 	}
 	vector<ofxSFP> pixels;
 	bool bMerged;
-	ofxSLimb * limb;
 	ofxSFP & operator[](int idx){
 		return pixels[idx];
 	}

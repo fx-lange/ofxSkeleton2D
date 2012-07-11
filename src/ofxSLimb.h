@@ -2,10 +2,12 @@
 #define OFXSLIMB_H_
 
 #include "ofMain.h"
+#include "ofxSFPLine.h"
 
 class ofxSLimb{
 public:
 	vector<ofPoint> joints;
+	ofxSFPLine * line;
 	ofColor color;
 	bool bReverseOrder;//TODO replace boolean with revereseIterator
 	float startAngle;
@@ -31,6 +33,16 @@ public:
 	}
 
 	ofPoint * getJoint(int idx);
+
+	ofPoint * getLinePoint(int idx){
+		if(idx < 0){
+			idx = line->size() + idx;
+		}
+		if(bReverseOrder){
+			idx = line->size()-1-idx;
+		}
+		return &(line->pixels[idx]);
+	}
 
 	ofPoint * getLimbStart();
 	ofPoint * getLimbEnd();

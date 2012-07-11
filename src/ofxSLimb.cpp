@@ -15,12 +15,14 @@ void ofxSLimb::copy(ofxSLimb * other){
 	color = other->color;
 	joints.clear();
 	joints.insert(joints.begin(),other->joints.begin(),other->joints.end());
+	line = other->line;
 	bFound = true;
 }
 
 void ofxSLimb::clear(){
 	bFound = false;
 	joints.clear();
+	line = NULL;
 }
 
 ofPoint * ofxSLimb::getLimbStart(){
