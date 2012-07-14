@@ -153,7 +153,7 @@ void ofxSkeletonTracker2D::calcSkeleton(){
 		mergeLines();
 	}
 
-	createLimbsNew();
+	createLimbs();
 	locateLimbs();
 }
 
@@ -660,44 +660,7 @@ void ofxSkeletonTracker2D::mergeLines() {
 	}
 }
 
-//void ofxSkeletonTracker2D::createLimbs() {
-//	float squaredMinLimbLength = gui.minlineLength*gui.minlineLength;
-//	limbs.clear(); //TODO memory leak
-//	for (int i = 0; i < lines.size(); ++i) {
-//		ofxSFPLine & line = lines[i];
-//		ofxSLimb * limb = NULL;
-//		if (line.limb != NULL || line.lengthSquared() < squaredMinLimbLength) {
-//			continue;
-//		} else {
-//			line.limb = limb = new ofxSLimb(line.first(), line.last());
-//		}
-//
-//		for (int j = 0; j < lines.size(); ++j) {
-//
-//			//TODO i != j
-//			ofxSFPLine & other = lines[j];
-//			if (other.limb != NULL || other.lengthSquared() < squaredMinLimbLength) {
-//				continue;
-//			}
-//			if (limb->last().distance(other.first()) < gui.maxLimbPointDistance) {
-//				limb->join(other.first(), other.last(), false);
-//				other.limb = limb;
-//			} else if (limb->last().distance(other.last()) < gui.maxLimbPointDistance) {
-//				limb->join(other.last(), other.first(), false);
-//				other.limb = limb;
-//			} else if (limb->first().distance(other.last()) < gui.maxLimbPointDistance) {
-//				limb->join(other.last(), other.first(), true);
-//				other.limb = limb;
-//			} else if (limb->first().distance(other.first()) < gui.maxLimbPointDistance) {
-//				limb->join(other.first(), other.last(), true);
-//				other.limb = limb;
-//			}
-//		}
-//		limbs.push_back(limb);
-//	}
-//}
-
-void ofxSkeletonTracker2D::createLimbsNew() {
+void ofxSkeletonTracker2D::createLimbs() {
 	float squaredMinLimbLength = gui.minlineLength*gui.minlineLength;
 	limbs.clear(); //TODO memory leak
 	for (int i = 0; i < lines.size(); ++i) {

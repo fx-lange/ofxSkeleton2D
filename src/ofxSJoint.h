@@ -8,6 +8,7 @@
 class ofxSJoint : public ofPoint{
 public:
 	bool bFound;
+	//REVISIT each bFound = false should be tracked!
 
 	ofxSJoint(){
 		clear();

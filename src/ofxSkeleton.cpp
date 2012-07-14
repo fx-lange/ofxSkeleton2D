@@ -19,7 +19,7 @@ void ofxSkeleton::clear(){
 	rightHand.clear();
 }
 
-void ofxSkeleton::calcHead(){
+void ofxSkeleton::locateHead(){
 	ofPoint * headTmp = neckToHead.getLimbEnd();
 	ofPoint * neckTmp = neckToHead.getLimbStart();
 	if(headTmp != NULL && neckTmp != NULL){
@@ -81,8 +81,6 @@ void ofxSkeleton::locateElbow(int index){
 	}
 }
 
-
-
 void ofxSkeleton::locateLeftElbow(){
 	locateElbow(0);
 }
@@ -103,6 +101,43 @@ void ofxSkeleton::locateRightUpperTorso(){
 	rightUpperTorso.bFound = elbow[1].bFound;
 }
 
+void ofxSkeleton::locateLeftLowerTorso(){
+	ofPoint * p = legs[leftFootIdx].getLimbStart();
+	if(p != NULL){
+		leftLowerTorso = *p;
+	}else{
+		leftLowerTorso.bFound = false;
+	}
+}
+
+void ofxSkeleton::locateRightLowerTorso(){
+	ofPoint * p = legs[1-leftFootIdx].getLimbStart();
+	if(p != NULL){
+		rightLowerTorso = *p;
+	}else{
+		rightLowerTorso.bFound = false;
+	}
+}
+
+void ofxSkeleton::locateLeftFoot(){
+	ofPoint * p = legs[leftFootIdx].getLimbEnd();
+	if(p != NULL){
+		leftFoot = *p;
+	}else{
+		leftFoot.bFound = false;
+	}
+}
+
+void ofxSkeleton::locateRightFoot(){
+	ofPoint * p = legs[1-leftFootIdx].getLimbEnd();
+	if(p != NULL){
+		rightFoot = *p;
+	}else{
+		rightFoot.bFound = false;
+	}
+}
+
+
 void ofxSkeleton::update(){
 
 	leftHandIdx = 0;
@@ -120,13 +155,34 @@ void ofxSkeleton::update(){
 		}
 	}
 
-	calcHead();
+	leftFootIdx = 0;
+	if(legs[0].getLimbEnd() != NULL && legs[1].getLimbEnd() != NULL){
+		if(legs[0].getLimbEnd()->x > legs[1].getLimbEnd()->x){
+			leftFootIdx = 1;
+		}
+	}else if(legs[0].getLimbEnd() != NULL){
+		if(legs[0].getLimbEnd()->x > upperTorsoFromPCA[1].x){
+			leftFootIdx = 1;
+		}
+	}else if(legs[1].getLimbEnd() != NULL){
+		if(legs[1].getLimbEnd()->x < upperTorsoFromPCA[0].x ){
+			leftFootIdx = 1;
+		}
+	}
+
+	locateHead();
+
 	locateLeftHand();
 	locateRightHand();
 	locateLeftElbow();
 	locateRightElbow();
 	locateLeftUpperTorso();
 	locateRightUpperTorso();
+
+	locateLeftFoot();
+	locateRightFoot();
+	locateLeftLowerTorso();
+	locateRightLowerTorso();
 }
 
 void ofxSkeleton::draw(){
@@ -136,65 +192,36 @@ void ofxSkeleton::draw(){
 		ofEllipse(*getNeck(),15,15);
 	}
 	ofSetColor(0,0,255,200);
-	if( foundLeftArm() ){
+	if( true || foundLeftArm() ){
+		ofLine(leftHand,elbow[0]);
+		ofLine(leftUpperTorso,elbow[0]);
 		ofEllipse(leftHand,25,25);
 		ofEllipse(elbow[0],20,20);
 		ofEllipse(leftUpperTorso,15,15);
 	}
-	if( foundRightArm() ){
+	ofSetColor(100,0,255,200);
+	if( true || foundRightArm() ){
+		ofLine(rightHand,elbow[1]);
+		ofLine(rightUpperTorso,elbow[1]);
 		ofEllipse(rightHand,25,25);
 		ofEllipse(elbow[1],20,20);
 		ofEllipse(rightUpperTorso,15,15);
 	}
 
-	ofSetColor(0,255,0,200);
-	if( legs[0].bFound ){
-		ofEllipse(legs[0].getLimbStart()->x,legs[0].getLimbStart()->y,15,15);
+	ofSetColor(0,200,0,200);
+	if( true || legs[0].bFound ){
+		ofEllipse(leftFoot,25,25);
+		ofEllipse(leftLowerTorso,15,15);
 	}
-	if( legs[1].bFound ){
-		ofEllipse(legs[1].getLimbStart()->x,legs[1].getLimbStart()->y,15,15);
-	}
-}
-
-
-void ofxSkeleton::locateElbowOld(int index){
-	int handIdx = index;
-	if(leftHandIdx == 1){
-		handIdx = 1 - handIdx;
+	ofSetColor(100,200,0,200);
+	if( true || legs[1].bFound ){
+		ofEllipse(rightFoot,25,25);
+		ofEllipse(rightLowerTorso,15,15);
 	}
 
-	int idx = -2;
-	ofPoint * joint = arms[handIdx].getJoint(idx);
-	if(joint != NULL){
-		float lowerArmDistance = joint->distance(*arms[handIdx].getJoint(-1));
-		float upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
-		float v = upperArmDistance / (lowerArmDistance + upperArmDistance);
-		float distance = lowerArmDistance;
-		bool bEnd = false;
-		ofPoint * last = arms[handIdx].getJoint(-1);
-		float lastV = 1;
-		while(v > gui->lowerUpperArmRatio){
-			last = joint;
-			lastV = v;
-			--idx;
-			joint = arms[handIdx].getJoint(idx);
-			if(joint != NULL){
-				distance = joint->distance(*last) + distance;
-				upperArmDistance = joint->distance(upperTorsoFromPCA[index]);
-				v = upperArmDistance / (distance + upperArmDistance);
-			}else{
-				bEnd = true;
-				break;
-			}
-		}
-
-		if(bEnd){
-			elbow[index] = (gui->lowerUpperArmRatio / lastV) * (*last-upperTorsoFromPCA[index]) + upperTorsoFromPCA[index];
-		}else{
-			elbow[index] = ( (gui->lowerUpperArmRatio - v) / (lastV - v) ) * (*last-*joint) + *joint;
-		}
-
-	}else{
-		elbow[index].bFound = false;
-	}
+	ofSetColor(0,255,255,200);
+	ofLine(leftUpperTorso,leftLowerTorso);
+	ofLine(rightUpperTorso,rightLowerTorso);
+	ofLine(leftUpperTorso,rightUpperTorso);
+	ofLine(leftLowerTorso,rightLowerTorso);
 }

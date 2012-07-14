@@ -100,8 +100,7 @@ protected:
 	void findLines();
 	void mergeLines();
 
-//	void createLimbs();
-	void createLimbsNew();
+	void createLimbs();
 	void locateLimbs();
 
 	vector<ofxSFP*> findInit(ofxSFP * active, int manhattenRadius);

@@ -49,7 +49,7 @@ public:
 		return head.getBufferedPosition()->distance(*neck.getBufferedPosition()) * 2.f;
 	}
 	ofPoint * getNeck() {
-		return neckToHead.getLimbStart(); //TODO not buffered
+		return neck.getBufferedPosition();
 	}
 	ofPoint * getLeftHand() {
 		return leftHand.getBufferedPosition();
@@ -71,7 +71,7 @@ public:
 	}
 
 protected:
-	int leftHandIdx;
+	int leftHandIdx, leftFootIdx;
 
 	ofxSJoint head, neck;
 
@@ -79,20 +79,27 @@ protected:
 	ofxSJoint elbow[2];
 	ofxSJoint leftHand, rightHand;
 
+	ofxSJoint leftLowerTorso, rightLowerTorso;
+	ofxSJoint leftFoot, rightFoot;
 
 
-	void calcHead();
+	void locateHead();
 
 	void locateLeftHand();
 	void locateRightHand();
 
-	void locateElbowOld(int idx);
 	void locateElbow(int idx);
 	void locateLeftElbow();
 	void locateRightElbow();
 
 	void locateLeftUpperTorso();
 	void locateRightUpperTorso();
+
+	void locateLeftFoot();
+	void locateRightFoot();
+
+	void locateLeftLowerTorso();
+	void locateRightLowerTorso();
 };
 
 #endif /* OFXSKELETON_H_ */
