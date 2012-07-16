@@ -17,6 +17,7 @@ public:
 	ofxSLimb neckToHead, arms[2], legs[2];
 
 	ofPoint upperTorsoFromPCA[2];
+	ofPoint lowerTorsoFromPCA[2];
 	ofPoint torsoCenter;
 
 	ofxSkeletonGui * gui;
@@ -70,6 +71,25 @@ public:
 		return rightUpperTorso.getBufferedPosition();
 	}
 
+	ofPoint * getLeftFoot() {
+		return leftFoot.getBufferedPosition();
+	}
+	ofPoint * getRightFoot() {
+		return rightFoot.getBufferedPosition();
+	}
+	ofPoint * getLeftKnee() {
+		return knee[0].getBufferedPosition();
+	}
+	ofPoint * getRightKnee() {
+		return knee[1].getBufferedPosition();
+	}
+	ofPoint * getLeftLowerTorso() {
+		return lowerTorso[0].getBufferedPosition();
+	}
+	ofPoint * getRightLowerTorso() {
+		return lowerTorso[1].getBufferedPosition();
+	}
+
 protected:
 	int leftHandIdx, leftFootIdx;
 
@@ -79,8 +99,9 @@ protected:
 	ofxSJoint elbow[2];
 	ofxSJoint leftHand, rightHand;
 
-	ofxSJoint leftLowerTorso, rightLowerTorso;
+	ofxSJoint lowerTorso[2];
 	ofxSJoint leftFoot, rightFoot;
+	ofxSJoint knee[2];
 
 
 	void locateHead();
@@ -97,6 +118,10 @@ protected:
 
 	void locateLeftFoot();
 	void locateRightFoot();
+
+	void locateKnee(int idx);
+	void locateLeftKnee();
+	void locateRightKnee();
 
 	void locateLeftLowerTorso();
 	void locateRightLowerTorso();

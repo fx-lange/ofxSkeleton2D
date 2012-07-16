@@ -56,12 +56,12 @@ void ofxSkeleton::locateElbow(int index){
 	}
 
 	if(arms[handIdx].line != NULL){
+		float limbLength = arms[handIdx].calcLength();
 		int idx = 0;
 		ofPoint * p = arms[handIdx].getLinePoint(idx);
-		ofPoint * end = arms[handIdx].getLinePoint(-1);
-		float lowerArmDistance = p->distance(*end);
 		float upperArmDistance = p->distance(upperTorsoFromPCA[index]);
-		float v = upperArmDistance / (lowerArmDistance + upperArmDistance);
+		float armLength = limbLength + upperArmDistance;
+		float v = upperArmDistance / armLength;
 		ofPoint * last = &upperTorsoFromPCA[index];
 		float lastV = 0;
 		while(v < gui->lowerUpperArmRatio){
@@ -69,9 +69,8 @@ void ofxSkeleton::locateElbow(int index){
 			lastV = v;
 			++idx;
 			p = arms[handIdx].getLinePoint(idx);
-			upperArmDistance = p->distance(upperTorsoFromPCA[index]);
-			lowerArmDistance = p->distance(*end);
-			v = upperArmDistance / (lowerArmDistance + upperArmDistance);
+			upperArmDistance += p->distance(*last);
+			v = upperArmDistance / armLength;
 		}
 
 		elbow[index] = ( (gui->lowerUpperArmRatio - lastV) / (v - lastV) ) * (*p-*last) + *last;
@@ -104,18 +103,20 @@ void ofxSkeleton::locateRightUpperTorso(){
 void ofxSkeleton::locateLeftLowerTorso(){
 	ofPoint * p = legs[leftFootIdx].getLimbStart();
 	if(p != NULL){
-		leftLowerTorso = *p;
+//		lowerTorso[0] = *p;
+		lowerTorso[0] = gui->moveLowerTorso * (*p - lowerTorsoFromPCA[0]) + lowerTorsoFromPCA[0];
 	}else{
-		leftLowerTorso.bFound = false;
+		lowerTorso[0].bFound = false;
 	}
 }
 
 void ofxSkeleton::locateRightLowerTorso(){
 	ofPoint * p = legs[1-leftFootIdx].getLimbStart();
 	if(p != NULL){
-		rightLowerTorso = *p;
+//		lowerTorso[1] = *p;
+		lowerTorso[1] = gui->moveLowerTorso * (*p - lowerTorsoFromPCA[1]) + lowerTorsoFromPCA[1];
 	}else{
-		rightLowerTorso.bFound = false;
+		lowerTorso[1].bFound = false;
 	}
 }
 
@@ -134,6 +135,44 @@ void ofxSkeleton::locateRightFoot(){
 		rightFoot = *p;
 	}else{
 		rightFoot.bFound = false;
+	}
+}
+
+void ofxSkeleton::locateLeftKnee(){
+	locateKnee(0);
+}
+void ofxSkeleton::locateRightKnee(){
+	locateKnee(1);
+}
+
+void ofxSkeleton::locateKnee(int index){
+	int footIdx = index;
+	if(leftFootIdx == 1){
+		footIdx = 1 - footIdx;
+	}
+
+	if(legs[footIdx].line != NULL){
+		float limbLength = legs[footIdx].calcLength();
+		int idx = 0;
+		ofPoint * p = legs[footIdx].getLinePoint(idx);
+		float upperDistance = p->distance(lowerTorso[index]);
+		float armLength = limbLength + upperDistance;
+		float v = upperDistance / armLength;
+		ofPoint * last = &lowerTorso[index];
+		float lastV = 0;
+		while(v < gui->lowerUpperLegRatio){
+			last = p;
+			lastV = v;
+			++idx;
+			p = legs[footIdx].getLinePoint(idx);
+			upperDistance += p->distance(*last);
+			v = upperDistance / armLength;
+		}
+
+		knee[index] = ( (gui->lowerUpperLegRatio - lastV) / (v - lastV) ) * (*p-*last) + *last;
+
+	}else{
+		knee[index].bFound = false;
 	}
 }
 
@@ -183,6 +222,8 @@ void ofxSkeleton::update(){
 	locateRightFoot();
 	locateLeftLowerTorso();
 	locateRightLowerTorso();
+	locateLeftKnee();
+	locateRightKnee();
 }
 
 void ofxSkeleton::draw(){
@@ -210,18 +251,24 @@ void ofxSkeleton::draw(){
 
 	ofSetColor(0,200,0,200);
 	if( true || legs[0].bFound ){
+		ofLine(leftFoot,knee[0]);
+		ofLine(lowerTorso[0],knee[0]);
 		ofEllipse(leftFoot,25,25);
-		ofEllipse(leftLowerTorso,15,15);
+		ofEllipse(knee[0],20,20);
+		ofEllipse(lowerTorso[0],15,15);
 	}
-	ofSetColor(100,200,0,200);
+	ofSetColor(150,220,0,200);
 	if( true || legs[1].bFound ){
+		ofLine(rightFoot,knee[1]);
+		ofLine(lowerTorso[1],knee[1]);
 		ofEllipse(rightFoot,25,25);
-		ofEllipse(rightLowerTorso,15,15);
+		ofEllipse(knee[1],20,20);
+		ofEllipse(lowerTorso[1],15,15);
 	}
 
 	ofSetColor(0,255,255,200);
-	ofLine(leftUpperTorso,leftLowerTorso);
-	ofLine(rightUpperTorso,rightLowerTorso);
+	ofLine(leftUpperTorso,lowerTorso[0]);
+	ofLine(rightUpperTorso,lowerTorso[1]);
 	ofLine(leftUpperTorso,rightUpperTorso);
-	ofLine(leftLowerTorso,rightLowerTorso);
+	ofLine(lowerTorso[0],lowerTorso[1]);
 }

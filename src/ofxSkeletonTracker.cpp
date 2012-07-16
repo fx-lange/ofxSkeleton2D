@@ -70,16 +70,19 @@ ofxPanel * ofxSkeletonTracker2D::getShaderPanel(){
 }
 
 ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background) {
+	ofxProfileSectionPush("preprocessing");
 	binary.absDiff(background, grayInput);
 	binary.threshold(gui.threshold);
 	binary.dilate();
 	binary.dilate();
 	binary.erode();
 	binary.erode();
+	ofxProfileSectionPop();
 	return calcSfpAsFbo(binary);
 }
 
 ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
+	ofxProfileSectionPush("contour");
 	contourFinder.findContours(binaryInput, 20, (340 * height) / 3, 10, true); // find holes
 
 	simpleContour.clear();
@@ -88,15 +91,17 @@ ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 
 		simpleContour.addVertexes(firstBlob.pts);
 		simpleContour.simplify(gui.tolerance);
-
+		ofxProfileSectionPop();
 		return calcSfpAsFbo(simpleContour.getVertices());
 	} else {
+		ofxProfileSectionPop();
 		ofLog(OF_LOG_WARNING, "no silhouette found");
 		return NULL;
 	}
 }
 
 ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
+	ofxProfileSectionPush("skeleton feature points");
 	voronoi.clear();
 	voronoi.setPolygon(silhouette);
 	//TODO contour points will be copied twice
@@ -135,26 +140,45 @@ ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
 
 	sfpShader.end();
 	fbo.end();
-
+	ofxProfileSectionPop();
 	return &fbo;
 }
 
 void ofxSkeletonTracker2D::calcSkeleton(){
-	GLubyte * ptr = readPixelsToPBO();
+	ofxProfileSectionPush("calc skeleton");
 
+	ofxProfileSectionPush("read to PBO");
+	GLubyte * ptr = readPixelsToPBO();
+	ofxProfileSectionPop();
 	if(!ptr)
 		return;
 
+	ofxProfileSectionPush("create DS");
 	createSFPGrid(ptr);
+	ofxProfileSectionPop();
+
+	ofxProfileSectionPush("PCA");
 	torsoPCA();
+	ofxProfileSectionPop();
 
+	ofxProfileSectionPush("lines");
+	ofxProfileSectionPush("growing");
 	findLines();
+	ofxProfileSectionPop();
 	if(gui.bMergeLines){
+		ofxProfileSectionPush("merging");
 		mergeLines();
+		ofxProfileSectionPop();
 	}
+	ofxProfileSectionPop();
 
+	ofxProfileSectionPush("pose estimation");
 	createLimbs();
 	locateLimbs();
+	ofxProfileSectionPop();
+
+
+	ofxProfileSectionPop();
 }
 
 void ofxSkeletonTracker2D::drawBinary(float x, float y){
@@ -184,6 +208,7 @@ void ofxSkeletonTracker2D::drawDebugTorso(float x,float y){
 	ofEllipse(center, 5, 5);
 	ofLine(torsoHigh.x, torsoHigh.y, torsoLow.x, torsoLow.y);
 	ofLine(skeleton.upperTorsoFromPCA[0],skeleton.upperTorsoFromPCA[1]);
+	ofLine(skeleton.lowerTorsoFromPCA[0],skeleton.lowerTorsoFromPCA[1]);
 
 	ofPopStyle();
 	ofPopMatrix();
@@ -265,7 +290,6 @@ void ofxSkeletonTracker2D::createSFPGrid(GLubyte * pboPtr){
 	maxDepth = 0;
 
 	//init openCv stuff
-	//TODO clear instead of new?! - TODO is working?
 	xss.release();
 	yss.release();
 
@@ -273,9 +297,13 @@ void ofxSkeletonTracker2D::createSFPGrid(GLubyte * pboPtr){
 	//dabei SFP Grid Datenstruktur aufbauen und Torso Punkte bestimmen (und Torso-BoundingBox [performant O(width+2)] )
 	//über den Rot-Kanal werden SFP makiert - im Grünkanal die Tiefe = maximaler Abstand zur Kontour
 	int checkPos = 0;
-	for (int x = 0; x < width; ++x) {
+	int minX = contourFinder.blobs[0].boundingRect.x;
+	int maxX = contourFinder.blobs[0].boundingRect.x + contourFinder.blobs[0].boundingRect.width;
+	int minY = contourFinder.blobs[0].boundingRect.y;
+	int maxY = contourFinder.blobs[0].boundingRect.y + contourFinder.blobs[0].boundingRect.height;
+	for (int x = minX; x < maxX; ++x) {
 		linePixels[x].clear();
-		for (int y = 0; y < height; ++y) {
+		for (int y = minY; y < maxY; ++y) {
 
 			float r = pboPtr[x * nChannels + y * (int) width * nChannels];
 			float d = pboPtr[1 + x * nChannels + y * (int) width * nChannels];
@@ -323,14 +351,17 @@ void ofxSkeletonTracker2D::torsoPCA(){
 //		cout << "EVector: " << pca.eigenvectors << endl;
 //		cout << "EValvues: " << pca.eigenvalues << endl;
 		primTorsoDirection.set(pca.eigenvectors.at<float>(0, 0), pca.eigenvectors.at<float>(0, 1));
-		float primLength = sqrt(pca.eigenvalues.at<float>(0)) * gui.scaleLambda1;
-		torsoHigh = center - primTorsoDirection * primLength;
-		torsoLow = center + primTorsoDirection * primLength;
+		float primLength = sqrt(pca.eigenvalues.at<float>(0));;
+		torsoHigh = center - primTorsoDirection * (primLength * gui.scaleLambda1);
+		torsoLow = center + primTorsoDirection * (primLength * gui.scaleLambda1);
 
 		sndTorsoDirection.set(pca.eigenvectors.at<float>(1, 0), pca.eigenvectors.at<float>(1, 1));
 		float sndLength = sqrt(pca.eigenvalues.at<float>(1)) * gui.scaleLambda2;
 		skeleton.upperTorsoFromPCA[0] = torsoHigh - sndTorsoDirection * sndLength;
 		skeleton.upperTorsoFromPCA[1] = torsoHigh + sndTorsoDirection * sndLength;
+		ofPoint legsDefinitionProblem = center + primTorsoDirection * (primLength * gui.scaleLambda1Low);
+		skeleton.lowerTorsoFromPCA[0] = legsDefinitionProblem - sndTorsoDirection * sndLength;
+		skeleton.lowerTorsoFromPCA[1] = legsDefinitionProblem + sndTorsoDirection * sndLength;
 	}
 
 
@@ -661,6 +692,7 @@ void ofxSkeletonTracker2D::mergeLines() {
 }
 
 void ofxSkeletonTracker2D::createLimbs() {
+	ofxProfileSectionPush("create limbs");
 	float squaredMinLimbLength = gui.minlineLength*gui.minlineLength;
 	limbs.clear(); //TODO memory leak
 	for (int i = 0; i < lines.size(); ++i) {
@@ -674,9 +706,11 @@ void ofxSkeletonTracker2D::createLimbs() {
 
 		limbs.push_back(limb);
 	}
+	ofxProfileSectionPop();
 }
 
 void ofxSkeletonTracker2D::locateLimbs() {
+	ofxProfileSectionPush("label limbs");
 	//TODO wirkt sehr aufwenig um die 3 nächsten zu suchen.
 
 	vector<ofxSLimb*> nearest;
@@ -744,7 +778,7 @@ void ofxSkeletonTracker2D::locateLimbs() {
 	float squaredMinLimbLength = gui.minLimbLengthSum * gui.minLimbLengthSum;
 	for (int i = 0; i < limbs.size(); ++i) {
 		ofxSLimb * limb = limbs[i];
-		if(limb->getLengthSquared() < squaredMinLimbLength){
+		if(limb->calcLength() < gui.minLimbLengthSum){
 			continue;
 		}
 		ofPoint * sJoint = limb->getLimbStart();
@@ -785,7 +819,7 @@ void ofxSkeletonTracker2D::locateLimbs() {
 			}
 		}
 
-		if(nextIdx >= 3){//check if head is between shoulders ...
+		if(nextIdx >= 3 && gui.betweenShoulders){//check if head is between shoulders ...
 //			if(skeleton.neckToHead.isLeftOf(skeleton.arms[0]) == skeleton.neckToHead.isLeftOf(skeleton.arms[1])){
 //				cout << "HEAD IS NOT BETWEEN SHOULDERS!" << endl;
 //			}
@@ -800,15 +834,18 @@ void ofxSkeletonTracker2D::locateLimbs() {
 
 		//TODO!!!!
 		//legs
-		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle > maxAngle) {
+		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle > maxAngle) {//TODO bad criteria
 			skeleton.legs[0].copy(minAngleLimbs[nextIdx]);
-			if (minAngleLimbs[nextIdx + 1] != NULL && minAngleLimbs[nextIdx + 1]->startAngle > maxAngle) {
+			if (minAngleLimbs[nextIdx + 1] != NULL && minAngleLimbs[nextIdx + 1]->startAngle > maxAngle) {//TODO bad criteria
 				skeleton.legs[1].copy(minAngleLimbs[nextIdx + 1]);
 			}
 		}
 	}
 
+	ofxProfileSectionPop();
+	ofxProfileSectionPush("joints");
 	skeleton.update();
+	ofxProfileSectionPop();
 
 //	//Unterscheidung von Kopf und Fuß über Ähnlichkeit der Winkel zum Torso
 //	//TODO Gerade Arme oder sehr schiefer Kopf könnten hier Fehler verursachen

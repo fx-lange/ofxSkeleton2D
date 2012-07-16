@@ -48,6 +48,7 @@ public:
 	ofxToggle bExcludeTorso;
 	ofxFloatSlider torsoThreshold;
 	ofxFloatSlider scaleLambda1;
+	ofxFloatSlider scaleLambda1Low;
 	ofxFloatSlider scaleLambda2;
 
 	//Pose Estimation
@@ -57,8 +58,11 @@ public:
 	ofxFloatSlider minlineLength;
 	ofxFloatSlider minLimbLengthSum;
 	ofxFloatSlider torsoElbowRatio;
+	ofxFloatSlider moveLowerTorso;
 	ofxFloatSlider lowerUpperArmRatio;
+	ofxFloatSlider lowerUpperLegRatio;
 	ofxFloatSlider headNeckRatio;
+	ofxToggle betweenShoulders;
 
 	//PostProcessing
 
@@ -101,6 +105,7 @@ public:
 		torsoPanel.add(bExcludeTorso.setup("exclude torso",true));
 		torsoPanel.add(torsoThreshold.setup("torso threshold",0.7,0,1));
 		torsoPanel.add(scaleLambda1.setup("scale lambda1",1,1,3));
+		torsoPanel.add(scaleLambda1Low.setup("scale lambda1 low",1,1,3));
 		torsoPanel.add(scaleLambda2.setup("scale lambda2",1,1,3));
 		panel.add(&torsoPanel);
 
@@ -109,9 +114,12 @@ public:
 		poseEstimationPanel.add(minlineLength.setup("min line length",20,1,50));
 		poseEstimationPanel.add(minLimbLengthSum.setup("min limb length",40,1,100));
 		poseEstimationPanel.add(maxAngleHead.setup("max angle head",30,1,90));
-		poseEstimationPanel.add(torsoElbowRatio.setup("torso elbow ratio",0.2,0,1));
-		poseEstimationPanel.add(lowerUpperArmRatio.setup("low upper ratio",0.5,0,1));
 		poseEstimationPanel.add(headNeckRatio.setup("head neck ratio",0.2,0,1));
+		poseEstimationPanel.add(torsoElbowRatio.setup("torso elbow ratio",0.2,0,1));
+		poseEstimationPanel.add(moveLowerTorso.setup("move lower torso",0.2,0,1));
+		poseEstimationPanel.add(lowerUpperArmRatio.setup("low upper ratio",0.5,0,1));
+		poseEstimationPanel.add(lowerUpperLegRatio.setup("low upper leg ratio",0.5,0,1));
+		poseEstimationPanel.add(betweenShoulders.setup("between shoulders",true));
 		panel.add(&poseEstimationPanel);
 	}
 };

@@ -18,6 +18,9 @@
 #include "ofxSkeleton.h"
 #include "ofxSkeletonGui.h"
 
+#define PROFILE
+#include "ofxProfile.h" //TODO use PROFILE to in and exclude ofxProfile
+
 class ofxSkeletonTracker2D {
 public:
 	void setup(float width, float height);
