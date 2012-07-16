@@ -66,7 +66,10 @@ public:
 		}
 	}
 
-	float getLengthSquared();
+//	float getLengthBetween(int startIdx,int endIdx);
+
+	float calcLengthSquared();
+	float calcLength(bool squared = false);
 	float getDirectLength(){
 		return getLimbStart()->distance(*getLimbEnd());
 	}

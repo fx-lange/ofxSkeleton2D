@@ -67,12 +67,34 @@ void ofxSLimb::join(ofPoint & jointP, ofPoint & newEndP, bool bInsertFront){
 
 }
 
-float ofxSLimb::getLengthSquared(){
+//float ofxSLimb::getLengthBetween(int startIdx,int endIdx){
+//	if(startIdx < 0){
+//		startIdx += line->size();
+//	}
+//	if(endIdx < 0){
+//		endIdx += line->size();
+//	}
+//	if(bReverseOrder){
+//		int tmpidx = endIdx;
+//		endIdx = line->size()-1-startIdx;
+//		startIdx = line->size()-1-tmpidx;
+//	}
+//}
+
+float ofxSLimb::calcLengthSquared(){
+	return calcLength(true);
+}
+
+float ofxSLimb::calcLength(bool squared){
 	float result = 0;
-	for(int i=0;i<joints.size()-1;++i){
-		ofPoint & p = joints[i];
-		ofPoint & q = joints[i+1];
-		result += p.squareDistance(q);
+	for(unsigned int i=0;i<line->size()-1;++i){
+		ofPoint & p = line->pixels[i];
+		ofPoint & q = line->pixels[i+1];
+		if(squared){
+			result += p.squareDistance(q);
+		}else{
+			result += p.distance(q);
+		}
 	}
 	return result;
 }
