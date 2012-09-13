@@ -5,7 +5,7 @@ ofxSLimb::ofxSLimb(ofPoint & p1, ofPoint & p2){
 	joints.clear();
 	joints.push_back(p1);
 	joints.push_back(p2);
-	color.set(255,255,255,50);
+	color.set(255,255,255,80);
 	startAngle = -1.f;
 	bFound = true;
 }
@@ -109,16 +109,16 @@ void ofxSLimb::draw(float x, float y){
 	ofPoint & p2 = last();
 	ofEllipse(p1.x,p1.y,10,10);
 	ofEllipse(p2.x,p2.y,10,10);
-	ofLine(p1.x,p1.y,p2.x,p2.y);
+//	ofLine(p1.x,p1.y,p2.x,p2.y);
 
-	for(int i=0;i<joints.size()-1;++i){
-		ofPoint & p = joints[i];
-		ofPoint & q = joints[i+1];
-		int dist = round(p.distance(q));
-		ofVec3f middle = (p+q)/2.f;
-		ofSetColor(255,255,255);
-		ofDrawBitmapString(ofToString(dist),middle);
-	}
+//	for(unsigned int i=0;i<joints.size()-1;++i){
+//		ofPoint & p = joints[i];
+//		ofPoint & q = joints[i+1];
+////		int dist = round(p.distance(q));
+//		ofVec3f middle = (p+q)/2.f;
+//		ofSetColor(255,255,255);
+////		ofDrawBitmapString(ofToString(dist),middle);
+//	}
 
 	ofPopMatrix();
 	ofPopStyle();

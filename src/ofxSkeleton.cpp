@@ -230,7 +230,7 @@ void ofxSkeleton::draw(){
 	ofSetColor(255,0,0,200);
 	if( foundHead() ){
 		ofEllipse(head,25,25);
-		ofEllipse(*getNeck(),15,15);
+//		ofEllipse(*getNeck(),15,15);
 	}
 	ofSetColor(0,0,255,200);
 	if( true || foundLeftArm() ){

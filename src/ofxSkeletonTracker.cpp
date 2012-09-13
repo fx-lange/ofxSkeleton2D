@@ -224,12 +224,12 @@ void ofxSkeletonTracker2D::drawDebugLines(float x, float y){
 	for (int i = 0; i < lines.size(); ++i) {
 		ofPoint & p1 = lines[i][0];
 		ofPoint & p2 = lines[i][lines[i].size() - 1];
-		ofSetColor(255, 255, 0, 100);
+		ofSetColor(255, 255, 0, 150);
 		ofEllipse(p1.x, p1.y, 5, 5);
-		ofSetColor(0, 255, 255, 100);
+		ofSetColor(0, 255, 255, 150);
 		ofEllipse(p2.x, p2.y, 5, 5);
-		ofSetColor(0, 0, 255);
-		ofLine(p1.x, p1.y, p2.x, p2.y);
+//		ofSetColor(0, 0, 255);
+//		ofLine(p1.x, p1.y, p2.x, p2.y);
 	}
 
 	ofPopStyle();
@@ -244,8 +244,9 @@ void ofxSkeletonTracker2D::drawDebugLimbs(float x, float y){
 	//Limbs
 	for (int i = 0; i < limbs.size(); ++i) {
 		limbs[i]->draw();
-		for(int j=0;j<limbs[i]->line->size();++j){
-			ofCircle(limbs[i]->line->pixels[j],1);
+		for(int j=1;j<limbs[i]->line->size();++j){
+			ofLine(limbs[i]->line->pixels[j-1], limbs[i]->line->pixels[j]);
+			ofCircle(limbs[i]->line->pixels[j],2);
 		}
 	}
 

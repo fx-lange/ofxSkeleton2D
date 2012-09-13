@@ -3,7 +3,7 @@
 
 #include "ofMain.h"
 
-#define JOINT_BUFFER_SIZE 1
+#define JOINT_BUFFER_SIZE 3
 
 class ofxSJoint : public ofPoint{
 public:
