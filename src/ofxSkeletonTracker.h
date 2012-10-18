@@ -46,7 +46,7 @@ public:
 	}
 
 	void drawBinary(float x = 0, float y = 0);
-	void drawDebugTorso(float x = 0, float y = 0);
+	void drawDebugTorso(int pca = 0,float x = 0, float y = 0);
 	void drawDebugLines(float x = 0, float y = 0);
 	void drawDebugLimbs(float x = 0, float y = 0);
 	void drawDebugSkeleton(float x = 0, float y = 0);

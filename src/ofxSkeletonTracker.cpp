@@ -88,8 +88,10 @@ ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 	simpleContour.clear();
 	if (!contourFinder.blobs.empty()) {
 		ofxCvBlob & firstBlob = contourFinder.blobs[0];
-
-		simpleContour.addVertexes(firstBlob.pts);
+		//TODO REVISITED TEST IT!
+		ofLog(OF_LOG_WARNING,"untested feature!");
+		voronoi.cam.setFarClip(firstBlob.boundingRect.width/3);
+		simpleContour.addVertices(firstBlob.pts);
 		simpleContour.simplify(gui.tolerance);
 		ofxProfileSectionPop();
 		return calcSfpAsFbo(simpleContour.getVertices());
@@ -191,7 +193,7 @@ void ofxSkeletonTracker2D::drawVoronoi(float x, float y){
 	voronoi.drawFboOnScreen(x,y);
 }
 
-void ofxSkeletonTracker2D::drawDebugTorso(float x,float y){
+void ofxSkeletonTracker2D::drawDebugTorso(int pca,float x,float y){
 	ofPushMatrix();
 	ofTranslate(x,y);
 	ofPushStyle();
@@ -206,11 +208,23 @@ void ofxSkeletonTracker2D::drawDebugTorso(float x,float y){
 	glEnd();
 
 	//Torso PCA
-	ofSetColor(255, 255, 255);
-	ofEllipse(center, 5, 5);
-	ofLine(torsoHigh.x, torsoHigh.y, torsoLow.x, torsoLow.y);
-	ofLine(skeleton.upperTorsoFromPCA[0],skeleton.upperTorsoFromPCA[1]);
-	ofLine(skeleton.lowerTorsoFromPCA[0],skeleton.lowerTorsoFromPCA[1]);
+	if(pca>0){
+		ofSetColor(255, 255, 255);
+		ofEllipse(center, 5, 5);
+		ofLine(torsoHigh.x, torsoHigh.y, torsoLow.x, torsoLow.y);
+		if(pca == 1){
+			ofPoint diff =  center - (skeleton.upperTorsoFromPCA[0] + skeleton.upperTorsoFromPCA[1]) / 2.f;
+			ofLine(skeleton.upperTorsoFromPCA[0]+diff,skeleton.upperTorsoFromPCA[1]+diff);
+		}else if(pca == 2){
+			ofLine(skeleton.upperTorsoFromPCA[0],skeleton.upperTorsoFromPCA[1]);
+			ofLine(skeleton.lowerTorsoFromPCA[0],skeleton.lowerTorsoFromPCA[1]);
+			ofSetColor(200,50,50);
+			ofEllipse(skeleton.upperTorsoFromPCA[0],10,10);
+			ofEllipse(skeleton.upperTorsoFromPCA[1],10,10);
+			ofEllipse(skeleton.lowerTorsoFromPCA[0],10,10);
+			ofEllipse(skeleton.lowerTorsoFromPCA[1],10,10);
+		}
+	}
 
 	ofPopStyle();
 	ofPopMatrix();
@@ -223,9 +237,9 @@ void ofxSkeletonTracker2D::drawDebugLines(float x, float y){
 
 	//Lines
 	ofFill();
-	for (int i = 0; i < lines.size(); ++i) {
+	for (int i = 0; i < (int)lines.size(); ++i) {
 		ofPoint & p1 = lines[i][0];
-		ofPoint & p2 = lines[i][lines[i].size() - 1];
+		ofPoint & p2 = lines[i][(int)lines[i].size() - 1];
 		ofSetColor(255, 255, 0, 150);
 		ofEllipse(p1.x, p1.y, 5, 5);
 		ofSetColor(0, 255, 255, 150);
@@ -244,7 +258,7 @@ void ofxSkeletonTracker2D::drawDebugLimbs(float x, float y){
 	ofPushStyle();
 
 	//Limbs
-	for (int i = 0; i < limbs.size(); ++i) {
+	for (int i = 0; i < (int)limbs.size(); ++i) {
 		limbs[i]->draw();
 		for(int j=1;j<limbs[i]->line->size();++j){
 			ofLine(limbs[i]->line->pixels[j-1], limbs[i]->line->pixels[j]);
@@ -299,7 +313,6 @@ void ofxSkeletonTracker2D::createSFPGrid(GLubyte * pboPtr){
 	//in doppelter Schleife Ergebnissbild vom LocalMax-Shader durchgehen
 	//dabei SFP Grid Datenstruktur aufbauen und Torso Punkte bestimmen (und Torso-BoundingBox [performant O(width+2)] )
 	//über den Rot-Kanal werden SFP makiert - im Grünkanal die Tiefe = maximaler Abstand zur Kontour
-	int checkPos = 0;
 	int minX = contourFinder.blobs[0].boundingRect.x;
 	int maxX = contourFinder.blobs[0].boundingRect.x + contourFinder.blobs[0].boundingRect.width;
 	int minY = contourFinder.blobs[0].boundingRect.y;
@@ -590,7 +603,7 @@ void ofxSkeletonTracker2D::findLines() {
 					}
 					//Abbruch wenn kein neuer Nachbar gefunden wird oder Chancen verbraucht sind
 					//Linie wird nur übernommen wenn sie lang genug ist
-					if (sfpLine.pixels.size() >= gui.minCountPixelsPerLine) {
+					if ((int)sfpLine.pixels.size() >= gui.minCountPixelsPerLine) {
 						lines.push_back(sfpLine);
 						bFound = true;
 					} else {
@@ -698,7 +711,7 @@ void ofxSkeletonTracker2D::createLimbs() {
 	ofxProfileSectionPush("create limbs");
 	float squaredMinLimbLength = gui.minlineLength*gui.minlineLength;
 	limbs.clear(); //TODO memory leak
-	for (int i = 0; i < lines.size(); ++i) {
+	for (int i = 0; i < (int)lines.size(); ++i) {
 		ofxSFPLine & line = lines[i];
 		ofxSLimb * limb = NULL;
 		if (line.lengthSquared() < squaredMinLimbLength)
@@ -779,7 +792,7 @@ void ofxSkeletonTracker2D::locateLimbs() {
 	ofVec2f v2 = center - torsoLow; //use center instead of torsoHigh - same angle but no bug if torso high is higher than neck
 	float maxAngle = 150.f;
 	float squaredMinLimbLength = gui.minLimbLengthSum * gui.minLimbLengthSum;
-	for (int i = 0; i < limbs.size(); ++i) {
+	for (int i = 0; i < (int)limbs.size(); ++i) {
 		ofxSLimb * limb = limbs[i];
 		if(limb->calcLength() < gui.minLimbLengthSum){
 			continue;
