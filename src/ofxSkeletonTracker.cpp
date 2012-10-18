@@ -52,7 +52,7 @@ void ofxSkeletonTracker2D::setup(float _width, float _height) {
 	xss.create(0, 1, CV_32F);
 	yss.create(0, 1, CV_32F);
 
-	linePixels.resize(640);
+	linePixels.resize(width);
 
 	skeleton.gui = &gui;
 }
@@ -83,7 +83,7 @@ ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxC
 
 ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 	ofxProfileSectionPush("contour");
-	contourFinder.findContours(binaryInput, 20, (340 * height) / 3, 10, true); // find holes
+	contourFinder.findContours(binaryInput, 20, (width * height) / 3, 10, true); // find holes
 
 	simpleContour.clear();
 	if (!contourFinder.blobs.empty()) {
@@ -145,6 +145,8 @@ ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(vector<ofPoint> & silhouette) {
 }
 
 void ofxSkeletonTracker2D::calcSkeleton(){
+	if(contourFinder.blobs.size()<=0)
+		return;
 	ofxProfileSectionPush("calc skeleton");
 
 	ofxProfileSectionPush("read to PBO");
