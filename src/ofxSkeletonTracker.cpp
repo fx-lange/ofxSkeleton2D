@@ -90,7 +90,7 @@ ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 		ofxCvBlob & firstBlob = contourFinder.blobs[0];
 		//TODO REVISITED TEST IT!
 		ofLog(OF_LOG_WARNING,"untested feature!");
-		voronoi.cam.setFarClip(firstBlob.boundingRect.width/3);
+		voronoi.setFarClip(firstBlob.boundingRect.width/3);
 		simpleContour.addVertices(firstBlob.pts);
 		simpleContour.simplify(gui.tolerance);
 		ofxProfileSectionPop();
