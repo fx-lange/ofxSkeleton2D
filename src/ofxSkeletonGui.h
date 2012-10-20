@@ -21,6 +21,7 @@ public:
 	ofxPanel imagePanel;
 	ofxFloatSlider threshold;
 	ofxFloatSlider tolerance;
+	ofxFloatSlider camFarClipFactor;
 
 	ofxPanel shaderPanel;
 	ofxFloatSlider lmpAccuracy;
@@ -74,6 +75,7 @@ public:
 //		imagePanel.setSize(270,imagePanel.getHeight());
 		imagePanel.add(threshold.setup("threshold",30,1,255));
 		imagePanel.add(tolerance.setup("simplify tolance",10,1,50));
+		imagePanel.add(camFarClipFactor.setup("far clip factor",0.5,.1,1.0));
 		panel.add(&imagePanel);
 
 		shaderPanel.setup("shader");
