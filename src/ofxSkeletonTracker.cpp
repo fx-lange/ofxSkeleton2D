@@ -28,6 +28,11 @@ void ofxSkeletonTracker2D::setup(float _width, float _height) {
 	fbo.allocate(width, height, GL_RGBA);
 
 	binary.allocate(width, height);
+	grayscaleImage = NULL;
+
+#ifdef FACETRACKING
+	haarFinder.setup("haarcascade_frontalface_default.xml");
+#endif
 
 	voronoi.setup(width, height, 1.f);
 	voronoi.setSkeletonMode(true);
@@ -69,8 +74,10 @@ ofxPanel * ofxSkeletonTracker2D::getShaderPanel(){
 	return & gui.shaderPanel;
 }
 
+//TODO naming of functions
 ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & grayInput, ofxCvGrayscaleImage & background) {
 	ofxProfileSectionPush("preprocessing");
+	grayscaleImage = &grayInput;
 	binary.absDiff(background, grayInput);
 	binary.threshold(gui.threshold);
 	binary.dilate();
@@ -179,6 +186,7 @@ void ofxSkeletonTracker2D::calcSkeleton(){
 	ofxProfileSectionPush("pose estimation");
 	createLimbs();
 	locateLimbs();
+	locateJoints();
 	ofxProfileSectionPop();
 
 
@@ -858,11 +866,6 @@ void ofxSkeletonTracker2D::locateLimbs() {
 		}
 	}
 
-	ofxProfileSectionPop();
-	ofxProfileSectionPush("joints");
-	skeleton.update();
-	ofxProfileSectionPop();
-
 //	//Unterscheidung von Kopf und Fuß über Ähnlichkeit der Winkel zum Torso
 //	//TODO Gerade Arme oder sehr schiefer Kopf könnten hier Fehler verursachen
 //	float minAngle = 360.f;
@@ -891,6 +894,30 @@ void ofxSkeletonTracker2D::locateLimbs() {
 //			}
 //		}
 //	}
+}
+
+void ofxSkeletonTracker2D::locateJoints(){
+	ofxProfileSectionPop();
+	ofxProfileSectionPush("joints");
+	skeleton.update();
+	ofxProfileSectionPop();
+
+#ifdef FACETRACKING
+	//improve face positioin with haarfinder
+	ofxProfileSectionPush("face tracking");
+	//TODO only possible if tracker was called with grayscale and background image!
+	if(grayscaleImage != NULL){
+		ofRectangle bb = skeleton.getHeadBoundingBox();
+		if(bb.width > 0){
+			int hits = haarFinder.findHaarObjects(*grayscaleImage,bb,20,20);
+			if(hits > 0){
+				ofLog(OF_LOG_VERBOSE,ofToString(hits)+" faces found");
+				skeleton.addNewFacePosition(haarFinder.blobs[0].boundingRect);
+			}
+		}
+	}
+	ofxProfileSectionPop();
+#endif
 }
 
 // ================================================================================

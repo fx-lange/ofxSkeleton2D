@@ -5,6 +5,7 @@
 #include "ofxSLimb.h"
 #include "ofxSJoint.h"
 #include "ofxSkeletonGui.h"
+#include "ofxOpenCv.h"
 
 class ofxSkeleton {
 	//TODO ignore errors ?!
@@ -25,6 +26,7 @@ public:
 	ofxSkeleton(){
 		head.N = 12;
 		neck.N = 12;
+		bHasFace = false;
 	}
 
 	void resetFrame();
@@ -53,11 +55,14 @@ public:
 		return headTop.getBufferedPosition();
 	}
 
-	float getHeadSize(){
-		return head.getBufferedPosition()->distance(*neck.getBufferedPosition()) * 2.f;
-	}
 	ofPoint * getNeck() {
 		return neck.getBufferedPosition();
+	}
+
+	ofRectangle getHeadBoundingBox();
+
+	float getHeadSize(){
+		return headTop.getBufferedPosition()->distance(*neck.getBufferedPosition());
 	}
 	ofPoint * getLeftHand() {
 		return leftHand.getBufferedPosition();
@@ -97,10 +102,15 @@ public:
 		return lowerTorso[1].getBufferedPosition();
 	}
 
+	void addNewFacePosition(ofRectangle & bb);
+	ofRectangle getFace();
+
 protected:
 	int leftHandIdx, leftFootIdx;
 
 	ofxSJoint head, neck, headTop;
+	ofxSJoint face[2];
+	bool bHasFace;
 
 	ofxSJoint leftUpperTorso, rightUpperTorso;
 	ofxSJoint elbow[2];

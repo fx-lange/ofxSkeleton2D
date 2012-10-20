@@ -32,6 +32,29 @@ void ofxSkeleton::locateHead(){
 	}
 }
 
+ofRectangle ofxSkeleton::getHeadBoundingBox(){
+	float height = neck.y-headTop.y;
+	ofPoint tl = headTop;
+	tl.x -= (height);
+	tl.y -= (height/2);
+	return ofRectangle(tl,height*2,height*2);
+}
+
+void ofxSkeleton::addNewFacePosition(ofRectangle & bb){
+	face[0] = ofPoint(bb.x,bb.y);
+	face[1] = ofPoint(bb.x+bb.width,bb.y+bb.height);
+	bHasFace = true;
+}
+
+ofRectangle ofxSkeleton::getFace(){
+	if(!bHasFace){
+		ofLog(OF_LOG_WARNING,"No Face Set - FACETRACKING defined?");
+	}
+	ofPoint tl = *(face[0].getBufferedPosition());
+	ofPoint br = *(face[1].getBufferedPosition());
+	return ofRectangle(tl,br);
+}
+
 void ofxSkeleton::locateLeftHand(){
 	ofPoint * p = arms[leftHandIdx].getLimbEnd();
 	if(p != NULL){

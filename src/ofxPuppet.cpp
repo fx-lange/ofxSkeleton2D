@@ -40,6 +40,20 @@ void ofxPuppet::drawLimb(ofPoint * lowerP, ofPoint * upperP, ofImage & image){
 	}
 }
 
+void ofxPuppet::drawMask(ofxSkeleton & skeleton){
+	ofRectangle face = skeleton.getFace();
+	ofPoint center = ofPoint(face.x + face.width/2.f,face.y + face.height/2.f);
+	float scaleHeadSize = face.height/headImg.getHeight() * scaleHead;
+	ofPushStyle();
+	ofPushMatrix();
+	ofSetRectMode(OF_RECTMODE_CENTER);
+	ofTranslate(center);
+	ofScale(scaleHeadSize,scaleHeadSize);
+	headImg.draw(0,0);
+	ofPopMatrix();
+	ofPopStyle();
+}
+
 void ofxPuppet::drawDummy(ofxSkeletonTracker2D * skeletonTracker){
 		ofPushStyle();
 		ofSetRectMode(OF_RECTMODE_CENTER);
@@ -59,8 +73,9 @@ void ofxPuppet::drawDummy(ofxSkeletonTracker2D * skeletonTracker){
 //			headImg.draw(0,0);
 //			ofPopMatrix();
 //		}
-			drawLimb(skeleton.getNeck(),skeleton.getHeadTop(),headImg);
-			drawLimb(skeleton.getNeck(),skeleton.getHeadTop(),leftLowerArm);
+//			drawLimb(skeleton.getNeck(),skeleton.getHeadTop(),headImg);
+//			drawLimb(skeleton.getNeck(),skeleton.getHeadTop(),leftLowerArm);
+		drawMask(skeleton);
 
 		//left lower arm
 			drawLimb(skeleton.getLeftHand(),skeleton.getLeftElbow(),leftLowerArm);

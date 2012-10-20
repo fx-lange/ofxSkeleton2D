@@ -14,12 +14,18 @@
 #include "ofxVoronoiGL.h"
 #include "ofxOpenCv.h"
 
+#define FACETRACKING
+#ifdef FACETRACKING
+#include "ofxCvHaarFinder.h"
+#endif
+
 #include "ofxSFPLine.h"
 #include "ofxSkeleton.h"
 #include "ofxSkeletonGui.h"
 
 #define PROFILE
 #include "ofxProfile.h" //TODO use PROFILE to in and exclude ofxProfile
+
 
 class ofxSkeletonTracker2D {
 public:
@@ -58,8 +64,11 @@ protected:
 
 	ofFbo fbo;
 
-	ofxCvGrayscaleImage binary;
+	ofxCvGrayscaleImage binary, * grayscaleImage;
 	ofxCvContourFinder contourFinder;
+#ifdef FACETRACKING
+	ofxCvHaarFinder haarFinder;
+#endif
 
 	ofxVoronoiGL voronoi;
 	ofShader sfpShader;
@@ -105,6 +114,8 @@ protected:
 
 	void createLimbs();
 	void locateLimbs();
+
+	void locateJoints();
 
 	vector<ofxSFP*> findInit(ofxSFP * active, int manhattenRadius);
 	ofxSFP * findNext(ofxSFP * active, int manhattenRadius);

@@ -38,7 +38,7 @@ public:
 	virtual ~ofxPuppet();
 
 	void addToGui(ofxPanel & gui){
-		gui.add(scaleHead.setup("scale head",1,0,2));
+		gui.add(scaleHead.setup("scale head",1,0,4));
 		gui.add(scaleTorso.setup("scale torso",1,0,2));
 		gui.add(scaleLowerArm.setup("scale lower arm",1,0,2));
 		gui.add(scaleUpperArm.setup("scale upper arm",1,0,2));
@@ -52,6 +52,7 @@ protected:
 
 	void drawLimb(ofPoint * lowerP, ofPoint * upperP, ofImage & image);
 	void drawArms(ofxSkeleton & skeleton);
+	void drawMask(ofxSkeleton & skeleton);
 
 };
 
