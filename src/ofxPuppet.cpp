@@ -47,16 +47,20 @@ void ofxPuppet::drawDummy(ofxSkeletonTracker2D * skeletonTracker){
 
 		//draw Mask
 		//TODO rotation
-		ofPoint * headP = skeleton.getHead();
-		if(headP != NULL){
-			float headSize = skeleton.getHeadSize();
-			float scaleHeadSize = headSize/headImg.getHeight() * scaleHead;
-			ofPushMatrix();
-			ofTranslate(*headP);
-			ofScale(scaleHeadSize,scaleHeadSize);
-			headImg.draw(0,0);
-			ofPopMatrix();
-		}
+//		ofPoint * headP = skeleton.getHeadTop();
+//		ofPoint * neckP = skeleton.getNeck();
+//		if(headP != NULL && neckP != NULL){
+//			float headSize = headP->distance(*neckP);
+//			float scaleHeadSize = headSize/headImg.getHeight() * scaleHead;
+//			ofPoint headCenter = (*neckP - *headP) * 0.5f + *headP;
+//			ofPushMatrix();
+//			ofTranslate(headCenter);
+//			ofScale(scaleHeadSize,scaleHeadSize);
+//			headImg.draw(0,0);
+//			ofPopMatrix();
+//		}
+			drawLimb(skeleton.getNeck(),skeleton.getHeadTop(),headImg);
+			drawLimb(skeleton.getNeck(),skeleton.getHeadTop(),leftLowerArm);
 
 		//left lower arm
 			drawLimb(skeleton.getLeftHand(),skeleton.getLeftElbow(),leftLowerArm);

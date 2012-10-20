@@ -22,6 +22,11 @@ public:
 
 	ofxSkeletonGui * gui;
 
+	ofxSkeleton(){
+		head.N = 12;
+		neck.N = 12;
+	}
+
 	void resetFrame();
 	void clear();
 
@@ -43,6 +48,11 @@ public:
 	ofPoint * getHead() {
 		return head.getBufferedPosition();
 	}
+
+	ofPoint * getHeadTop(){
+		return headTop.getBufferedPosition();
+	}
+
 	float getHeadSize(){
 		return head.getBufferedPosition()->distance(*neck.getBufferedPosition()) * 2.f;
 	}
@@ -90,7 +100,7 @@ public:
 protected:
 	int leftHandIdx, leftFootIdx;
 
-	ofxSJoint head, neck;
+	ofxSJoint head, neck, headTop;
 
 	ofxSJoint leftUpperTorso, rightUpperTorso;
 	ofxSJoint elbow[2];

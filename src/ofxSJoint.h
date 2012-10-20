@@ -23,10 +23,10 @@ public:
 		bFound = true;
 	}
 
-	void clear(){
+	void clear(int bufferSize = JOINT_BUFFER_SIZE){
 		pointsAdded = idx = 0;
 		bFound = false;
-		N = JOINT_BUFFER_SIZE;
+		N = bufferSize;
 		positionBuffer.clear();
 	}
 
@@ -36,10 +36,10 @@ public:
 
 	static ofxFloatSlider errorTolerance;
 
+	int N; //TODO should be changeable
 protected:
 	vector<ofPoint> positionBuffer;
 	int idx;
-	int N; //TODO should be changeable
 	int pointsAdded;
 
 	ofPoint bufferedPosition;

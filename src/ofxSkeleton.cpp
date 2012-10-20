@@ -9,8 +9,8 @@ void ofxSkeleton::resetFrame(){
 }
 
 void ofxSkeleton::clear(){
-	head.clear();
-	neck.clear();
+	head.clear(6);
+	neck.clear(6);
 	leftUpperTorso.clear();
 	rightUpperTorso.clear();
 	elbow[0].clear();
@@ -25,6 +25,7 @@ void ofxSkeleton::locateHead(){
 	if(headTmp != NULL && neckTmp != NULL){
 		head = ((*neckTmp - *headTmp) * gui->headNeckRatio) + *headTmp;
 		neck = *neckTmp;
+		headTop = *headTmp;
 	}else{
 		head.bFound = false;
 		neck.bFound = false;
