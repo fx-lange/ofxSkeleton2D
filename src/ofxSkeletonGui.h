@@ -58,6 +58,7 @@ public:
 	ofxFloatSlider maxLimbPointDistance;
 	ofxFloatSlider minlineLength;
 	ofxFloatSlider minLimbLengthSum;
+	ofxFloatSlider maxTorsoRatio;
 	ofxFloatSlider torsoElbowRatio;
 	ofxFloatSlider moveLowerTorso;
 	ofxFloatSlider lowerUpperArmRatio;
@@ -116,6 +117,7 @@ public:
 		poseEstimationPanel.add(minlineLength.setup("min line length",20,1,50));
 		poseEstimationPanel.add(minLimbLengthSum.setup("min limb length",40,1,100));
 		poseEstimationPanel.add(maxAngleHead.setup("max angle head",30,1,90));
+		poseEstimationPanel.add(maxTorsoRatio.setup("max arm torso ratio",0.5f,0.01,1.f));
 		poseEstimationPanel.add(headNeckRatio.setup("head neck ratio",0.2,0,1));
 		poseEstimationPanel.add(torsoElbowRatio.setup("torso elbow ratio",0.2,0,1));
 		poseEstimationPanel.add(moveLowerTorso.setup("move lower torso",0.2,0,1));

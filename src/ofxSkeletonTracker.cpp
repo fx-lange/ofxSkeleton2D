@@ -95,8 +95,6 @@ ofFbo * ofxSkeletonTracker2D::calcSfpAsFbo(ofxCvGrayscaleImage & binaryInput) {
 	simpleContour.clear();
 	if (!contourFinder.blobs.empty()) {
 		ofxCvBlob & firstBlob = contourFinder.blobs[0];
-		//TODO REVISITED TEST IT!
-		ofLog(OF_LOG_WARNING,"untested feature!");
 		voronoi.setFarClip(firstBlob.boundingRect.width*gui.camFarClipFactor);
 		simpleContour.addVertices(firstBlob.pts);
 		simpleContour.simplify(gui.tolerance);
@@ -735,48 +733,20 @@ void ofxSkeletonTracker2D::createLimbs() {
 
 void ofxSkeletonTracker2D::locateLimbs() {
 	ofxProfileSectionPush("label limbs");
-	//TODO wirkt sehr aufwenig um die 3 nächsten zu suchen.
 
-	vector<ofxSLimb*> nearest;
-	vector<float> minDistances;
-	minDistances.push_back(20000);
-	minDistances.push_back(20000);
-	minDistances.push_back(20000);
-	minDistances.push_back(20000);
-	minDistances.push_back(20000);
-	nearest.push_back(NULL);
-	nearest.push_back(NULL);
-	nearest.push_back(NULL);
-	nearest.push_back(NULL);
-	nearest.push_back(NULL);
-
-
-	//sort SLimbs after their smallest distance to torsoHigh
-	for (int i = 0; i < limbs.size(); ++i) {
+	//set internal order of each limb (after distance to the upperTorso)
+	for (int i = 0; i < (int)limbs.size(); ++i) {
 		ofxSLimb * limb = limbs[i];
-		float distanceToCheck = 0;
 		float distanceFirst = limb->first().distance(torsoHigh);
 		float distanceLast = limb->last().distance(torsoHigh);
 		if (distanceFirst < distanceLast) {
-			distanceToCheck = distanceFirst;
 			limb->bReverseOrder = false;
 		} else {
-			distanceToCheck = distanceLast;
 			limb->bReverseOrder = true;
-		}
-		for (int j = 0; j < 5; ++j) {
-			if (distanceToCheck < minDistances[j]) {
-				for (int k = 4; k > j; k--) {
-					minDistances[k] = minDistances[k - 1];
-					nearest[k] = nearest[k - 1];
-				}
-				minDistances[j] = distanceToCheck;
-				nearest[j] = limb;
-				break;
-			}
 		}
 	}
 
+	//TODO looks very ugly - use STL sort
 	vector<ofxSLimb*> minAngleLimbs;
 	vector<float> minAngles;
 	minAngles.push_back(20000);
@@ -797,11 +767,12 @@ void ofxSkeletonTracker2D::locateLimbs() {
 	// a) is better than b)
 
 	//sort SLimbs after their smallest angle to the primary component of the torso
-	ofVec2f v2 = center - torsoLow; //use center instead of torsoHigh - same angle but no bug if torso high is higher than neck
+	ofVec2f v2 = center - torsoLow; //use center instead of torsoHigh - same angle but no prob if torso high is higher than neck
 	float maxAngle = 150.f;
-	float squaredMinLimbLength = gui.minLimbLengthSum * gui.minLimbLengthSum;
 	for (int i = 0; i < (int)limbs.size(); ++i) {
 		ofxSLimb * limb = limbs[i];
+
+		//ignore to short limbs
 		if(limb->calcLength() < gui.minLimbLengthSum){
 			continue;
 		}
@@ -831,22 +802,22 @@ void ofxSkeletonTracker2D::locateLimbs() {
 			++nextIdx;
 		}
 
+		float torsoLength = torsoLow.distance(torsoHigh);
 		//arms
-//		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
-		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < torsoLow.y) {
+		if (minAngleLimbs[nextIdx] != NULL &&
+				( 	minAngleLimbs[nextIdx]->getLimbStart()->y < torsoLow.y ||
+					minAngleLimbs[nextIdx]->calcLength() < torsoLength * gui.maxTorsoRatio) ) {
 			skeleton.arms[0].copy(minAngleLimbs[nextIdx]);
 			++nextIdx;
-//			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle < maxAngle) {
-			if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->getLimbStart()->y < torsoLow.y) {
+			if (minAngleLimbs[nextIdx] != NULL && (
+					minAngleLimbs[nextIdx]->getLimbStart()->y < torsoLow.y ||
+					minAngleLimbs[nextIdx]->calcLength() < torsoLength * gui.maxTorsoRatio) ) {
 				skeleton.arms[1].copy(minAngleLimbs[nextIdx]);
 				++nextIdx;
 			}
 		}
 
-		if(nextIdx >= 3 && gui.betweenShoulders){//check if head is between shoulders ...
-//			if(skeleton.neckToHead.isLeftOf(skeleton.arms[0]) == skeleton.neckToHead.isLeftOf(skeleton.arms[1])){
-//				cout << "HEAD IS NOT BETWEEN SHOULDERS!" << endl;
-//			}
+		if(nextIdx >= 3 && gui.betweenShoulders){//check if head is between shoulders ... TODO bad criteria
 			if(isLeftOf(&center,skeleton.neckToHead.getLimbStart(),skeleton.arms[0].getLimbStart()) == isLeftOf(&center,skeleton.neckToHead.getLimbStart(),skeleton.arms[1].getLimbStart())){
 				cout << "HEAD IS NOT BETWEEN SHOULDERS!" << endl;
 				ofxSLimb tmp;
@@ -856,44 +827,14 @@ void ofxSkeletonTracker2D::locateLimbs() {
 			}
 		}
 
-		//TODO!!!!
 		//legs
-		if (minAngleLimbs[nextIdx] != NULL && minAngleLimbs[nextIdx]->startAngle > maxAngle) {//TODO bad criteria
+		if (minAngleLimbs[nextIdx] != NULL){// && minAngleLimbs[nextIdx]->startAngle > maxAngle) { //bad cirteria
 			skeleton.legs[0].copy(minAngleLimbs[nextIdx]);
-			if (minAngleLimbs[nextIdx + 1] != NULL && minAngleLimbs[nextIdx + 1]->startAngle > maxAngle) {//TODO bad criteria
+			if (minAngleLimbs[nextIdx + 1] != NULL){ // && minAngleLimbs[nextIdx + 1]->startAngle > maxAngle) { bad criteria
 				skeleton.legs[1].copy(minAngleLimbs[nextIdx + 1]);
 			}
 		}
 	}
-
-//	//Unterscheidung von Kopf und Fuß über Ähnlichkeit der Winkel zum Torso
-//	//TODO Gerade Arme oder sehr schiefer Kopf könnten hier Fehler verursachen
-//	float minAngle = 360.f;
-//	int minIndex = 0;
-//	ofVec2f v2 = torsoHigh - torsoLow;
-//	for(int i=0;i<3;i++){
-//		if(nearest[i] == NULL){
-//			break;
-//		}
-//
-////		ofVec2f v1 = nearest[i]->getLimbEnd() - nearest[i]->getLimbStart();
-//		ofVec2f v1 = nearest[i]->getLimbStart() - torsoHigh;
-//		float tmpAngle = abs(v1.angle(v2));
-//		if(tmpAngle < maxAngle && tmpAngle < minAngle){
-//			minIndex = i;
-//			minAngle = tmpAngle;
-//		}
-//	}
-//
-//	if(nearest[minIndex] != NULL){
-//		skeleton.head = nearest[minIndex];
-//		if(nearest[(minIndex+1)%3] != NULL){
-//			skeleton.arms[0] = nearest[(minIndex+1)%3];
-//			if(nearest[(minIndex+2)%3] != NULL){
-//				skeleton.arms[1] = nearest[(minIndex+2)%3];
-//			}
-//		}
-//	}
 }
 
 void ofxSkeletonTracker2D::locateJoints(){
