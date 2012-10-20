@@ -22,9 +22,6 @@ public:
 
 	ofxSkeletonGui * gui;
 
-	ofxSkeleton() {
-	}
-
 	void resetFrame();
 	void clear();
 

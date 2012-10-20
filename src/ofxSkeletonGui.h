@@ -120,6 +120,7 @@ public:
 		poseEstimationPanel.add(lowerUpperArmRatio.setup("low upper ratio",0.5,0,1));
 		poseEstimationPanel.add(lowerUpperLegRatio.setup("low upper leg ratio",0.5,0,1));
 		poseEstimationPanel.add(betweenShoulders.setup("between shoulders",true));
+		poseEstimationPanel.add(ofxSJoint::errorTolerance.setup("joint error tolerance",150,50,1500));
 		panel.add(&poseEstimationPanel);
 	}
 };
